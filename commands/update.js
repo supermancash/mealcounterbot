@@ -1,5 +1,8 @@
 import {Telegraf} from "telegraf";
-import bot from "../index";
+import bot from "../bot.js";
 
-bot.command('oldschool', (ctx) => ctx.reply('Hello'));
-bot.command('hipster', Telegraf.reply('λ'));
+const update = () => {
+    bot.command('update', Telegraf.reply('λ'));
+}
+
+export default update;
