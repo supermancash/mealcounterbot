@@ -1,8 +1,14 @@
-import {Telegraf} from "telegraf";
+import UserSchema from "./dao/models/User.js";
 
+import {Telegraf} from "telegraf";
+import CounterSchema from "./dao/models/Counter.js";
 const bot = new Telegraf("5206027815:AAHzEI2LNVOavq-c8ScWb76AUfPUjka8xtI");
 
 bot.start((ctx) => {
+        const user = new UserSchema(ctx.update.message.from);
+        user.save().catch(err => console.log(err));
+        const counter = new CounterSchema({"first_name": ctx.update.message.from.first_name, "meals_owed": 0});
+        counter.save().catch(err => console.log(err));
         ctx.replyWithMarkdown("Hi " + ctx.update.message.from.first_name +
             "! \n\nWelcome to the `mealcounterbot`, I'll be happy to assist with counting how many meals are owed by " +
             "colleauges in your team :)" +

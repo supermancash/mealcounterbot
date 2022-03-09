@@ -4,6 +4,7 @@ import update from "./commands/update.js";
 import notifications from "./commands/notifications.js";
 
 import http from "http";
+import mongoConnection from "./dao/mongoConnection.js";
 
 
 // only to fool heroku, making the application seem like a webapp
@@ -15,3 +16,4 @@ bot.launch().catch(err => console.log(err));
 show();
 update();
 notifications();
+mongoConnection();
