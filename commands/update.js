@@ -8,7 +8,6 @@ const update = async () => {
 
     const update = new Scenes.BaseScene('update');
 
-    const {leave} = Scenes.Stage;
     update.hears("cancel", (ctx) => {
         ctx.scene.leave();
         ctx.reply("Update process cancelled.")
@@ -84,7 +83,7 @@ const update = async () => {
                     userTextingWithBot + "update the meals owed list... \n" +
                     "Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
 
-                ctx.scene.leave();
+                await ctx.scene.leave();
             } catch (err) {
                 console.log(err)
             }

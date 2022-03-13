@@ -8,7 +8,7 @@ const show = () => {
         for (let i = 0; i < counters.length; i++) {
             reply += "\n*" + counters[i].first_name + ": " + counters[i].meals_owed + "*";
         }
-        ctx.replyWithMarkdown(reply);
+        await ctx.replyWithMarkdown(reply);
     });
 }
 

@@ -2,11 +2,10 @@ import UserSchema from "./dao/models/User.js";
 
 import {Telegraf} from "telegraf";
 import CounterSchema from "./dao/models/Counter.js";
-import mongoose from "mongoose";
 
 const bot = new Telegraf("5206027815:AAHzEI2LNVOavq-c8ScWb76AUfPUjka8xtI");
 
-bot.start((ctx) => {
+bot.start(async (ctx) => {
         console.log(ctx.update.message.from)
         const user = new UserSchema(ctx.update.message.from);
         user.save().catch(err => console.log(err));
