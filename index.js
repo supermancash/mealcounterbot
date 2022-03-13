@@ -2,9 +2,10 @@ import bot from "./bot.js";
 import show from "./commands/show.js";
 import update from "./commands/update.js";
 import notifications from "./commands/notifications.js";
+import mongoConnection from "./dao/mongoConnection.js";
 
 import http from "http";
-import mongoConnection from "./dao/mongoConnection.js";
+
 
 
 // only to fool heroku, making the application seem like a webapp
