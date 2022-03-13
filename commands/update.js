@@ -10,7 +10,7 @@ const update = async () => {
 
     const {leave} = Scenes.Stage;
     update.hears("cancel", leave());
-    update.leave((ctx) => ctx.reply('Update proccess canceled'));
+    update.leave(() => console.log("Left Update Process"));
 
 
     update.enter((ctx) => {
@@ -33,7 +33,7 @@ const update = async () => {
         for (let i = 0; i < counters.length; i++) {
             buttonsv2.push(Markup.button.callback(counters[i].first_name, counters[i].first_name + "2"));
         }
-        bot.action(counters[i].first_name, async (ctx) => {
+        update.action(counters[i].first_name, async (ctx) => {
             currentUserSelected = counters[i];
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                 "Who won the bet though? 🤔", {
@@ -45,7 +45,7 @@ const update = async () => {
     }
 
     for (let i = 0; i < counters.length; i++) {
-        bot.action((counters[i].first_name + "2"), async (ctx) => {
+        update.action((counters[i].first_name + "2"), async (ctx) => {
             try {
                 let seeIfAlreadyExists;
                 currentUserSelected.meals_owed != null ? seeIfAlreadyExists = currentUserSelected.meals_owed.filter(object =>
@@ -73,7 +73,7 @@ const update = async () => {
                 );
                 await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentUserSelected.first_name +
                     " now owes " + counters[i].first_name + " another meal.*");
-                leave();
+                ctx.scene.leave();
             } catch (err) {
                 console.log(err)
             }
