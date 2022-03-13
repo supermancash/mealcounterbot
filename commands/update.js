@@ -9,8 +9,12 @@ const update = async () => {
     const update = new Scenes.BaseScene('update');
 
     const {leave} = Scenes.Stage;
-    update.hears("cancel", leave());
+    update.hears("cancel", (ctx) => {
+        ctx.scene.leave();
+        ctx.reply("Update process cancelled.")
+    });
     update.leave(() => console.log("Left Update Process"));
+    let userTextingWithBot;
 
 
     update.enter((ctx) => {
@@ -24,9 +28,10 @@ const update = async () => {
                 buttons
             ])
         });
+        userTextingWithBot = ctx.update.message.from.first_name;
     });
 
-    let currentUserSelected;
+    let currentLoserSelected;
 
     for (let i = 0; i < counters.length; i++) {
         let buttonsv2 = [];
@@ -34,45 +39,51 @@ const update = async () => {
             buttonsv2.push(Markup.button.callback(counters[i].first_name, counters[i].first_name + "2"));
         }
         update.action(counters[i].first_name, async (ctx) => {
-            currentUserSelected = counters[i];
+            currentLoserSelected = counters[i];
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                 "Who won the bet though? 🤔", {
                 ...Markup.inlineKeyboard([
                     buttonsv2
                 ])
             });
-        })
+        });
     }
 
     for (let i = 0; i < counters.length; i++) {
         update.action((counters[i].first_name + "2"), async (ctx) => {
             try {
-                let seeIfAlreadyExists;
-                currentUserSelected.meals_owed != null ? seeIfAlreadyExists = currentUserSelected.meals_owed.filter(object =>
-                    object.meal_receiver === counters[i].first_name
-                ) : seeIfAlreadyExists = [];
-                let mealsOwedArray = [];
-                if (seeIfAlreadyExists.length > 0) {
-                    currentUserSelected.meals_owed.map(obj => {
+
+                // check for user in list of meals owed
+                currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name) > 0 ?
+                    // if the receiver of the meal already exists, update the amount of meals received
+                    currentLoserSelected.meals_owed.map(obj => {
                         if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
-                    });
-                    mealsOwedArray = currentUserSelected.meals_owed;
-                }
-                if (seeIfAlreadyExists.length < 1) {
-                    currentUserSelected.meals_owed.push(
+                    })
+                    :
+                    // if the receiver doesn't exits add him to the list of meals owed
+                    currentLoserSelected.meals_owed.push(
                         {
                             "meal_receiver": counters[i].first_name,
                             "amount": 1
                         }
                     );
-                    mealsOwedArray = currentUserSelected.meals_owed;
-                }
+
+                // update the array in the database
                 await CounterSchema.findOneAndUpdate(
-                    {"first_name": currentUserSelected.first_name},
-                    {"meals_owed": mealsOwedArray}
+                    {"first_name": currentLoserSelected.first_name},
+                    {"meals_owed": currentLoserSelected.meals_owed}
                 );
-                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentUserSelected.first_name +
+
+                // reply to user
+                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
                     " now owes " + counters[i].first_name + " another meal.*");
+
+                // text the loser of the bet that they now owe another meal to the specified other user
+                await bot.telegram.sendMessage(
+                    currentLoserSelected.id,
+                    userTextingWithBot + "update the meals owed list... \n" +
+                    "Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
+
                 ctx.scene.leave();
             } catch (err) {
                 console.log(err)
