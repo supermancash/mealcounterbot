@@ -6,7 +6,18 @@ const show = () => {
         let reply = "Here is the current list of meals owed: \n";
         const counters = await CounterSchema.find();
         for (let i = 0; i < counters.length; i++) {
-            reply += "\n*" + counters[i].first_name + ": " + counters[i].meals_owed + "*";
+            if (counters[i].meals_owed.length > 0) {
+                reply += "\n*" + counters[i].first_name + " owes:*\n"
+                for (let j = 0; j < counters[i].meals_owed.length; j++) {
+                    reply += "   " + counters[i].meals_owed[j].meal_receiver + " "
+                        + counters[i].meals_owed[j].amount + " meal";
+                    if(counters[i].meals_owed[j].amount > 1 ) reply += "s";
+                    reply += "\n";
+                }
+            }
+            if (counters[i].meals_owed.length < 1) {
+                reply += "\n*" + counters[i].first_name + " owes no meals :D*  \n";
+            }
         }
         await ctx.replyWithMarkdown(reply);
     });

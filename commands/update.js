@@ -80,8 +80,8 @@ const update = async () => {
                 // text the loser of the bet that they now owe another meal to the specified other user
                 await bot.telegram.sendMessage(
                     currentLoserSelected.id,
-                    userTextingWithBot + "update the meals owed list... \n" +
-                    "Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
+                    userTextingWithBot + " updated the meals owed list:\n\n" +
+                    "--> Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
 
                 await ctx.scene.leave();
             } catch (err) {
