@@ -90,32 +90,6 @@ const update = async () => {
         });
     }
 
-    /*update.on('message', async (ctx) => {
-        let counterFromUser = await CounterSchema.find(
-            {"first_name": ctx.update.message.text.substring(0, ctx.update.message.text.indexOf(' '))});
-        if (counterFromUser.length === 1) {
-            let newValue;
-            console.log(counterFromUser[0])
-            ctx.update.message.text.substring(ctx.update.message.text.indexOf(' ') + 1) === "i" ?
-                newValue = counterFromUser[0].meals_owed + 1 :
-                newValue = counterFromUser[0].meals_owed - 1;
-            await CounterSchema.findOneAndUpdate(
-                {"first_name": ctx.update.message.text.substring(0, ctx.update.message.text.indexOf(' '))},
-                {"meals_owed": newValue}
-            );
-        }
-        const users = await UserSchema.find();
-        for (let i = 0; i < users.length; i++) {
-            const newCounters = await CounterSchema.find();
-            let response = "";
-            for (let i = 0; i < newCounters.length; i++) {
-                response += "\n" + newCounters[i].first_name + ": " + newCounters[i].meals_owed;
-            }
-            await bot.telegram.sendMessage(users[i].id, "The list of meals has been updated: " + response)
-        }
-        leave();
-    });*/
-
     const stage = new Scenes.Stage();
     stage.register(update)
     bot.use(session());
