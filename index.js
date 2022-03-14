@@ -5,7 +5,7 @@ import notifications from "./commands/notifications.js";
 import mongoConnection from "./dao/mongoConnection.js";
 
 import http from "http";
-
+import 'dotenv/config';
 
 
 // only to fool heroku, making the application seem like a webapp
