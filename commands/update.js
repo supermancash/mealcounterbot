@@ -1,4 +1,4 @@
-import bot from "../bot.js";
+import bot, {stage} from "../bot.js";
 import CounterSchema from "../dao/models/Counter.js";
 
 import {Markup, Scenes, session} from 'telegraf';
@@ -21,8 +21,9 @@ const update = async () => {
         for (let i = 0; i < counters.length; i++) {
             buttons.push(Markup.button.callback(counters[i].first_name, counters[i].first_name));
         }
-        ctx.replyWithMarkdown("The current list of active users are shown below \n" +
-            "\n_(Please click the name of the user you would like to change)_", {
+        ctx.replyWithMarkdown("The current list of active users are shown below\n" +
+            "\n_(Please click the name of the user that lost a bet, or type cancel to terminate the update process.)_",
+            {
             ...Markup.inlineKeyboard([
                 buttons
             ])
@@ -32,11 +33,12 @@ const update = async () => {
 
     let currentLoserSelected;
 
+    let buttonsv2 = [];
+    for (let j = 0; j < counters.length; j++) {
+        buttonsv2.push(Markup.button.callback(counters[j].first_name, counters[j].first_name + "2"));
+    }
+
     for (let i = 0; i < counters.length; i++) {
-        let buttonsv2 = [];
-        for (let i = 0; i < counters.length; i++) {
-            buttonsv2.push(Markup.button.callback(counters[i].first_name, counters[i].first_name + "2"));
-        }
         update.action(counters[i].first_name, async (ctx) => {
             currentLoserSelected = counters[i];
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
@@ -91,7 +93,6 @@ const update = async () => {
         });
     }
 
-    const stage = new Scenes.Stage();
     stage.register(update)
     bot.use(session());
     bot.use(stage.middleware());
