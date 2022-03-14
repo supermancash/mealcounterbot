@@ -53,7 +53,8 @@ const update = async () => {
             try {
 
                 // check for user in list of meals owed
-                currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name) > 0 ?
+                currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name)
+                    .length > 0 ?
                     // if the receiver of the meal already exists, update the amount of meals received
                     currentLoserSelected.meals_owed.map(obj => {
                         if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
