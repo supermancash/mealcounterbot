@@ -34,7 +34,7 @@ const payup = async () => {
             for (let i = 0; i < buttons.length; i++) {
                 seperatedButtons.push([buttons[i]],);
             }
-            ctx.replyWithMarkdown("The current list of users that owe meals are shown below \n" +
+            await ctx.replyWithMarkdown("The current list of users that owe meals are shown below \n" +
                 "\n_(Please click the name of the user that will be paying for the meal, " +
                 "or type cancel to terminate the update process.)_", {
                 ...Markup.inlineKeyboard(seperatedButtons)
@@ -92,8 +92,8 @@ const payup = async () => {
                             try {
                                 // reply to user
                                 await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentPayerSelected.first_name +
-                                    " payed for " + currentReceiverSelected + "'s meal.\n" +
-                                    "🖼️ PS: Your picture has been uploaded as evidence.*");
+                                    " payed for " + currentReceiverSelected + "'s meal.\n\n" +
+                                    "PS: Your picture has been uploaded as evidence. 🖼*");
 
                                 currentPayerSelected.meals_owed[i].amount === 1 ?
                                     currentPayerSelected.meals_owed.splice(i, 1) :
