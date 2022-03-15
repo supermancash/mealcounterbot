@@ -23,7 +23,7 @@ const proof = async () => {
             for (let i = 0; i < proofList.length; i++) {
                 buttons.push(Markup.button.callback(
                     proofList[i].trade.meal_ower  + " payed " +
-                    proofList[i].trade.meal_receiver + "(" +
+                    proofList[i].trade.meal_receiver + " (" +
                     proofList[i].createdAt.getUTCDate() + "." +
                     proofList[i].createdAt.getUTCMonth() + "." +
                     proofList[i].createdAt.getUTCFullYear() + ")",
