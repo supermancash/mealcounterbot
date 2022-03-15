@@ -5,18 +5,18 @@ import CounterSchema from "../dao/models/Counter.js";
 import ProofSchema from "../dao/models/Proof.js";
 
 const payup = async () => {
-    const payup = new Scenes.BaseScene('payup');
+    const payupScene = new Scenes.BaseScene('payup');
 
-    payup.hears("cancel", (ctx) => {
+    payupScene.hears("cancel", (ctx) => {
         ctx.scene.leave();
         ctx.reply("payup process cancelled.")
     });
-    payup.leave(() => console.log("Left Payup Process"));
+    payupScene.leave(() => console.log("Left Payup Process"));
 
     let userTextingWithBot;
     let counters, owers;
 
-    payup.enter(async (ctx) => {
+    payupScene.enter(async (ctx) => {
         let counters = await CounterSchema.find();
         let owers = counters.filter(obj => {
             if (obj.meals_owed.length > 0) return obj;
@@ -58,7 +58,7 @@ const payup = async () => {
                 for (let j = 0; j < buttonsv2.length; j++) {
                     seperatedButtonsv2.push([buttonsv2[j]],);
                 }
-                payup.action(owers[i].first_name, async (ctx) => {
+                payupScene.action(owers[i].first_name, async (ctx) => {
                     await ctx.replyWithMarkdown("Ok, so " + owers[i].first_name + " will be paying. " +
                         "Who is cashing in their meal? 🤑", {
                         ...Markup.inlineKeyboard(seperatedButtonsv2)
@@ -70,14 +70,14 @@ const payup = async () => {
 
             for (let i = 0; i < currentPayerSelected.meals_owed.length; i++) {
                 currentReceiverSelected = currentPayerSelected.meals_owed[i].meal_receiver;
-                payup.action((currentPayerSelected.meals_owed[i].meal_receiver + "2"), async (ctx) => {
+                payupScene.action((currentPayerSelected.meals_owed[i].meal_receiver + "2"), async (ctx) => {
                     await ctx.replyWithMarkdown(
                         "Ok, almost done :)\n" +
                         "To proceed, please provide proof of the meal in the form of a picture📸"
                     );
                 });
 
-                payup.on("photo", (ctx) => {
+                payupScene.on("photo", (ctx) => {
                     ctx.telegram.getFileLink(ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id)
                         .then(async (url) => {
                             const proof = new ProofSchema({
@@ -136,7 +136,7 @@ const payup = async () => {
             }
         }
     });
-    stage.register(payup)
+    stage.register(payupScene)
     bot.use(session());
     bot.use(stage.middleware());
     bot.command('payup', (ctx) => ctx.scene.enter('payup'));
