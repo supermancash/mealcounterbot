@@ -8,6 +8,8 @@ import http from "http";
 import 'dotenv/config';
 import help from "./commands/help.js";
 
+// TODO: (everywhere) code cleanup and annotations
+
 
 // only to fool heroku, making the application seem like a webapp
 const server = http.createServer();

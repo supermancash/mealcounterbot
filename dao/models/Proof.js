@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
-    change: {
-        first_name: {type: String, required: true},
-        from: {type: Number, required: true},
-        to: {type: Number, required: true}
+    trade: {
+        meal_ower: {type: String, required: true},
+        meal_receiver: {type: String, required: true},
     },
-    proof: {type: Image, required: true},
+    proof_img_url: {type: String, required: true},
 });
 
 
