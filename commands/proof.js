@@ -1,5 +1,5 @@
 import bot, {stage} from "../bot.js";
-import {Markup, Scenes, session} from "telegraf";
+import {Markup, Scenes} from "telegraf";
 import ProofSchema from "../dao/models/Proof.js";
 
 const proof = async () => {
@@ -22,9 +22,11 @@ const proof = async () => {
             let seperatedButtons = [];
             for (let i = 0; i < proofList.length; i++) {
                 buttons.push(Markup.button.callback(
+                    proofList[i].trade.meal_ower  + " payed " +
+                    proofList[i].trade.meal_receiver + "(" +
                     proofList[i].createdAt.getUTCDate() + "." +
                     proofList[i].createdAt.getUTCMonth() + "." +
-                    proofList[i].createdAt.getUTCFullYear(),
+                    proofList[i].createdAt.getUTCFullYear() + ")",
                     JSON.stringify(proofList[i].createdAt)));
             }
             for (let i = 0; i < buttons.length; i++) {
@@ -38,8 +40,8 @@ const proof = async () => {
                 }
             );
             for (let i = 0; i < proofList.length; i++) {
-                proofScene.action(JSON.stringify(proofList[i].createdAt), (ctx) => {
-                    ctx.replyWithPhoto({url: proofList[i].proof_img_url});
+                proofScene.action(JSON.stringify(proofList[i].createdAt), async (ctx) => {
+                    await ctx.replyWithPhoto({url: proofList[i].proof_img_url});
                 })
             }
             await ctx.scene.leave();
