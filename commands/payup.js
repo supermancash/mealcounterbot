@@ -91,9 +91,10 @@ const payup = async () => {
 
                             try {
                                 // reply to user
-                                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentPayerSelected.first_name +
-                                    " payed for " + currentReceiverSelected + "'s meal.\n\n" +
-                                    "PS: Your picture has been uploaded as evidence. 🖼*");
+                                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
+                                    currentPayerSelected.first_name + " payed for " +
+                                    currentReceiverSelected + "'s meal.*\n\n" +
+                                    "PS: Your picture has been uploaded as evidence. 🖼");
 
                                 currentPayerSelected.meals_owed[i].amount === 1 ?
                                     currentPayerSelected.meals_owed.splice(i, 1) :
