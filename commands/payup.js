@@ -27,15 +27,17 @@ const payup = async () => {
         }
         if (owers.length > 0) {
             let buttons = [];
+            let seperatedButtons = [];
             for (let i = 0; i < owers.length; i++) {
                 buttons.push(Markup.button.callback(owers[i].first_name, owers[i].first_name));
+            }
+            for (let i = 0; i < buttons.length; i++) {
+                seperatedButtons.push([buttons[i]],);
             }
             ctx.replyWithMarkdown("The current list of users that owe meals are shown below \n" +
                 "\n_(Please click the name of the user that will be paying for the meal, " +
                 "or type cancel to terminate the update process.)_", {
-                ...Markup.inlineKeyboard([
-                    buttons
-                ])
+                ...Markup.inlineKeyboard(seperatedButtons)
             });
             userTextingWithBot = ctx.update.message.from.first_name;
 
@@ -44,6 +46,7 @@ const payup = async () => {
             for (let i = 0; i < owers.length; i++) {
                 currentPayerSelected = owers[i];
                 let buttonsv2 = [];
+                let seperatedButtonsv2 = [];
                 for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
                     buttonsv2.push(
                         Markup.button.callback(
@@ -52,12 +55,13 @@ const payup = async () => {
                         )
                     );
                 }
+                for (let j = 0; j < buttonsv2.length; j++) {
+                    seperatedButtonsv2.push([buttonsv2[j]],);
+                }
                 payup.action(owers[i].first_name, async (ctx) => {
                     await ctx.replyWithMarkdown("Ok, so " + owers[i].first_name + " will be paying. " +
                         "Who is cashing in their meal? 🤑", {
-                        ...Markup.inlineKeyboard([
-                            buttonsv2
-                        ])
+                        ...Markup.inlineKeyboard(seperatedButtonsv2)
                     });
                 });
             }
@@ -68,7 +72,8 @@ const payup = async () => {
                 currentReceiverSelected = currentPayerSelected.meals_owed[i].meal_receiver;
                 payup.action((currentPayerSelected.meals_owed[i].meal_receiver + "2"), async (ctx) => {
                     await ctx.replyWithMarkdown(
-                        "Alright. To proceed, please provide proof of the meal in the form of a picture"
+                        "Ok, almost done :)\n" +
+                        "To proceed, please provide proof of the meal in the form of a picture📸"
                     );
                 });
 
@@ -87,7 +92,8 @@ const payup = async () => {
                             try {
                                 // reply to user
                                 await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentPayerSelected.first_name +
-                                    " payed for " + currentReceiverSelected + "'s meal.*");
+                                    " payed for " + currentReceiverSelected + "'s meal.\n" +
+                                    "🖼️ PS: Your picture has been uploaded as evidence.*");
 
                                 currentPayerSelected.meals_owed[i].amount === 1 ?
                                     currentPayerSelected.meals_owed.splice(i, 1) :

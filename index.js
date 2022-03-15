@@ -3,10 +3,12 @@ import show from "./commands/show.js";
 import update from "./commands/update.js";
 import payup from "./commands/payup.js";
 import mongoConnection from "./dao/mongoConnection.js";
+import help from "./commands/help.js";
+import proof from "./commands/proof.js";
 
 import http from "http";
 import 'dotenv/config';
-import help from "./commands/help.js";
+
 
 // TODO: (everywhere) code cleanup and annotations
 
@@ -23,3 +25,4 @@ show();
 help();
 update().catch(err => console.log(err));
 payup().catch(err => console.log(err));
+proof().catch(err => console.log(err));

@@ -18,24 +18,31 @@ const update = async () => {
 
     update.enter((ctx) => {
         let buttons = [];
+        let seperatedButtons = [];
         for (let i = 0; i < counters.length; i++) {
             buttons.push(Markup.button.callback(counters[i].first_name, counters[i].first_name));
+        }
+        for (let i = 0; i < buttons.length; i++) {
+            seperatedButtons.push([buttons[i]],);
         }
         ctx.replyWithMarkdown("The current list of active users are shown below\n" +
             "\n_(Please click the name of the user that lost a bet, or type cancel to terminate the update process.)_",
             {
-            ...Markup.inlineKeyboard([
-                buttons
-            ])
-        });
+                ...Markup.inlineKeyboard(seperatedButtons)
+            });
         userTextingWithBot = ctx.update.message.from.first_name;
     });
 
     let currentLoserSelected;
 
     let buttonsv2 = [];
+    let seperatedButtonsv2 = [];
     for (let j = 0; j < counters.length; j++) {
         buttonsv2.push(Markup.button.callback(counters[j].first_name, counters[j].first_name + "2"));
+    }
+
+    for (let i = 0; i < buttonsv2.length; i++) {
+        seperatedButtonsv2.push([buttonsv2[i]],);
     }
 
     for (let i = 0; i < counters.length; i++) {
@@ -43,9 +50,7 @@ const update = async () => {
             currentLoserSelected = counters[i];
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                 "Who won the bet though? 🤔", {
-                ...Markup.inlineKeyboard([
-                    buttonsv2
-                ])
+                ...Markup.inlineKeyboard(seperatedButtonsv2)
             });
         });
     }
@@ -78,7 +83,7 @@ const update = async () => {
 
                 // reply to user
                 await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
-                    " now owes " + counters[i].first_name + " another meal.*");
+                    " now owes " + counters[i].first_name + " another meal. 🍔*");
 
                 // text the loser of the bet that they now owe another meal to the specified other user
                 await bot.telegram.sendMessage(
