@@ -9,7 +9,5 @@ const schema = new mongoose.Schema({
     }]
 });
 
-
 const CounterSchema = mongoose.model("Counter", schema);
-
 export default CounterSchema;

@@ -13,7 +13,5 @@ const schema = new mongoose.Schema(
     }
 );
 
-
 const ProofSchema = mongoose.model("Proof", schema);
-
 export default ProofSchema;

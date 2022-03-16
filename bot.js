@@ -1,14 +1,18 @@
 import UserSchema from "./dao/models/User.js";
+import CounterSchema from "./dao/models/Counter.js";
 
 import {Scenes, Telegraf} from "telegraf";
-import CounterSchema from "./dao/models/Counter.js";
+
 
 // bot initialisation
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 bot.start(async (ctx) => {
+        // saving user info to users table
         const user = new UserSchema(ctx.update.message.from);
         user.save().catch(err => console.log(err));
+
+        // saving user info to counters table
         const counter = new CounterSchema(
             {
                 id: ctx.update.message.from.id,
@@ -17,6 +21,8 @@ bot.start(async (ctx) => {
             }
         );
         counter.save().catch(err => console.log(err));
+
+        // welcome message
         await ctx.replyWithMarkdown("Hi " + ctx.update.message.from.first_name +
             "! \n\nWelcome to the `mealcounterbot`, I'll be happy to assist with counting how many meals are owed by " +
             "colleagues in your team :)" +

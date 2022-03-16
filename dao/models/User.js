@@ -8,7 +8,5 @@ const schema = new mongoose.Schema({
     type: {type: String, required: false}
 });
 
-
 const UserSchema = mongoose.model("User", schema);
-
 export default UserSchema;

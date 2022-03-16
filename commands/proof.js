@@ -1,8 +1,11 @@
 import bot, {stage} from "../bot.js";
 import {Markup, Scenes} from "telegraf";
 import ProofSchema from "../dao/models/Proof.js";
+import ButtonArrayService from "../service/ButtonArrayService.js";
 
 const proof = async () => {
+    // TODO: authentication if proof is true to user that payed
+
     const proofScene = new Scenes.BaseScene('proof');
 
     proofScene.hears("cancel", async (ctx) => {
@@ -18,26 +21,16 @@ const proof = async () => {
             await ctx.scene.leave();
         }
         if (proofList.length > 0) {
-            let buttons = [];
-            let seperatedButtons = [];
-            for (let i = 0; i < proofList.length; i++) {
-                buttons.push(Markup.button.callback(
-                    proofList[i].trade.meal_ower  + " payed " +
-                    proofList[i].trade.meal_receiver + " (" +
-                    proofList[i].createdAt.getUTCDate() + "." +
-                    (proofList[i].createdAt.getUTCMonth() + 1) + "." +
-                    proofList[i].createdAt.getUTCFullYear() + ")",
-                    JSON.stringify(proofList[i].createdAt)));
-            }
-            buttons.reverse();
-            for (let i = 0; i < buttons.length; i++) {
-                seperatedButtons.push([buttons[i]],);
-            }
+            proofList.reverse();
             await ctx.replyWithMarkdown("The list below shows the most recent meals eaten😋\n" +
                 "\n_(Please click the date of the image you would like to see, " +
                 "or type cancel to terminate the update process.)_",
                 {
-                    ...Markup.inlineKeyboard(seperatedButtons)
+                    ...Markup.inlineKeyboard(ButtonArrayService(
+                        proofList,
+                        ["trade.meal_ower", "trade.meal_receiver" ,"createdAt"],
+                        "proof"
+                    ))
                 }
             );
             for (let i = 0; i < proofList.length; i++) {

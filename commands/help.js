@@ -1,6 +1,6 @@
 import bot from "../bot.js";
 
-const help = () => {
+const help = async () => {
     bot.command('help', async (ctx) => {
         await ctx.replyWithMarkdown(
             "\n\n*Use these commands to control me:*" +
@@ -11,7 +11,6 @@ const help = () => {
             "\n/help - show the list of commands and their functions (or just type / to see them)"
         );
     });
-
 }
 
 export default help;

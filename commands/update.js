@@ -1,5 +1,6 @@
 import bot, {stage} from "../bot.js";
 import CounterSchema from "../dao/models/Counter.js";
+import ButtonArrayService from "../service/ButtonArrayService.js";
 
 import {Markup, Scenes, session} from 'telegraf';
 
@@ -17,18 +18,12 @@ const update = async () => {
 
 
     update.enter((ctx) => {
-        let buttons = [];
-        let seperatedButtons = [];
-        for (let i = 0; i < counters.length; i++) {
-            buttons.push(Markup.button.callback(counters[i].first_name, counters[i].first_name));
-        }
-        for (let i = 0; i < buttons.length; i++) {
-            seperatedButtons.push([buttons[i]],);
-        }
         ctx.replyWithMarkdown("The current list of active users are shown below📝\n" +
             "\n_(Please click the name of the user that lost a bet, or type cancel to terminate the update process.)_",
             {
-                ...Markup.inlineKeyboard(seperatedButtons)
+                ...Markup.inlineKeyboard(
+                    ButtonArrayService(counters, ["first_name"], "update1")
+                )
             });
         userTextingWithBot = ctx.update.message.from.first_name;
     });
@@ -39,21 +34,15 @@ const update = async () => {
     for (let i = 0; i < counters.length; i++) {
         update.action(counters[i].first_name, async (ctx) => {
             currentLoserSelected = counters[i];
-            let buttonsv2 = [];
-            let seperatedButtonsv2 = [];
-            for (let j = 0; j < counters.length; j++) {
-                if (currentLoserSelected !== counters[j]) buttonsv2.push(
-                    Markup.button.callback(counters[j].first_name, counters[j].first_name + "2"))
-                ;
-            }
-
-            for (let i = 0; i < buttonsv2.length; i++) {
-                seperatedButtonsv2.push([buttonsv2[i]],);
-            }
-
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                 "Who won the bet though? 🤔", {
-                ...Markup.inlineKeyboard(seperatedButtonsv2)
+                ...Markup.inlineKeyboard(
+                    ButtonArrayService(
+                        counters.filter(obj => obj !== currentLoserSelected),
+                        ["first_name"],
+                        "update2"
+                    )
+                )
             });
         });
     }
