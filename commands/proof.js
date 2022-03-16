@@ -43,6 +43,7 @@ const proof = async () => {
             for (let i = 0; i < proofList.length; i++) {
                 proofScene.action(JSON.stringify(proofList[i].createdAt), async (ctx) => {
                     await ctx.replyWithPhoto({url: proofList[i].proof_img_url});
+                    await ctx.reply("To see another picture, please restart the proof process.\n(/proof)")
                     await ctx.scene.leave();
                 })
             }
