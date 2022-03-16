@@ -69,8 +69,8 @@ const payup = async () => {
             let currentReceiverSelected;
 
             for (let i = 0; i < currentPayerSelected.meals_owed.length; i++) {
-                currentReceiverSelected = currentPayerSelected.meals_owed[i].meal_receiver;
                 payupScene.action((currentPayerSelected.meals_owed[i].meal_receiver + "2"), async (ctx) => {
+                    currentReceiverSelected = currentPayerSelected.meals_owed[i].meal_receiver;
                     await ctx.replyWithMarkdown(
                         "Ok, almost done :)\n" +
                         "To proceed, please provide proof of the meal in the form of a picture📸"
