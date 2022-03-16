@@ -111,7 +111,9 @@ const payup = async () => {
                                         textForMessage +=
                                             currentPayerSelected.meals_owed[j].meal_receiver + " " +
                                             currentPayerSelected.meals_owed[j].amount;
-                                        textForMessage += currentPayerSelected.meals_owed[j].amount > 1 ? " meals" : " meal"
+                                        textForMessage +=
+                                            currentPayerSelected.meals_owed[j].amount > 1 ? " meals" : " meal";
+                                        textForMessage += "\n";
                                     }
                                 }
                                 if (currentPayerSelected.meals_owed.length < 1) {
