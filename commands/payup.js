@@ -63,6 +63,8 @@ const payup = async () => {
                         "Who is cashing in their meal? 🤑", {
                         ...Markup.inlineKeyboard(seperatedButtonsv2)
                     });
+
+                    let currentReceiverSelected;
                     for (let k = 0; k < currentPayerSelected.meals_owed.length; k++) {
                         payupScene.action((currentPayerSelected.meals_owed[k].meal_receiver + "2"), async (ctx) => {
                             currentReceiverSelected = currentPayerSelected.meals_owed[k].meal_receiver;
@@ -134,10 +136,6 @@ const payup = async () => {
                     }
                 });
             }
-
-            let currentReceiverSelected;
-
-
         }
     });
     stage.register(payupScene)
