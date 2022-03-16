@@ -63,18 +63,12 @@ const payup = async () => {
                         "Who is cashing in their meal? 🤑", {
                         ...Markup.inlineKeyboard(seperatedButtonsv2)
                     });
-                    for (let i = 0; i < currentPayerSelected.meals_owed.length; i++) {
-                        payupScene.action((currentPayerSelected.meals_owed[i].meal_receiver + "2"), async (ctx) => {
-                            currentReceiverSelected = currentPayerSelected.meals_owed[i].meal_receiver;
-                            currentPayerSelected.meals_owed[i].amount === 1 ?
-                                currentPayerSelected.meals_owed.splice(i, 1) :
-                                currentPayerSelected.meals_owed[i].amount -= 1;
-
-                            // update the array in the database
-                            await CounterSchema.findOneAndUpdate(
-                                {"first_name": currentPayerSelected.first_name},
-                                {"meals_owed": currentPayerSelected.meals_owed}
-                            );
+                    for (let k = 0; k < currentPayerSelected.meals_owed.length; k++) {
+                        payupScene.action((currentPayerSelected.meals_owed[k].meal_receiver + "2"), async (ctx) => {
+                            currentReceiverSelected = currentPayerSelected.meals_owed[k].meal_receiver;
+                            currentPayerSelected.meals_owed[k].amount === 1 ?
+                                currentPayerSelected.meals_owed.splice(k, 1) :
+                                currentPayerSelected.meals_owed[k].amount -= 1;
 
                             await ctx.replyWithMarkdown(
                                 "Ok, almost done :)\n" +
@@ -85,16 +79,21 @@ const payup = async () => {
                         payupScene.on("photo", (ctx) => {
                             ctx.telegram.getFileLink(ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id)
                                 .then(async (url) => {
-                                    const proof = new ProofSchema({
-                                        trade: {
-                                            meal_ower: currentPayerSelected.first_name,
-                                            meal_receiver: currentReceiverSelected
-                                        },
-                                        proof_img_url: url.href
-                                    });
-                                    await proof.save().catch(err => console.log(err));
-
                                     try {
+                                        const proof = new ProofSchema({
+                                            trade: {
+                                                meal_ower: currentPayerSelected.first_name,
+                                                meal_receiver: currentReceiverSelected
+                                            },
+                                            proof_img_url: url.href
+                                        });
+                                        await proof.save().catch(err => console.log(err));
+
+                                        // update the array in the database
+                                        await CounterSchema.findOneAndUpdate(
+                                            {"first_name": currentPayerSelected.first_name},
+                                            {"meals_owed": currentPayerSelected.meals_owed}
+                                        );
                                         // reply to user
                                         await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
                                             currentPayerSelected.first_name + " payed for " +
@@ -107,7 +106,7 @@ const payup = async () => {
                                             " updated the meals owed list:\n\n" +
                                             "--> Looks like you payed up your ";
                                         if (currentPayerSelected.meals_owed.length > 0) {
-                                            textForMessage += "bet!" + "\nRemaining meals owed:\n";
+                                            textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
                                             for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
                                                 textForMessage +=
                                                     currentPayerSelected.meals_owed[j].meal_receiver + " " +
