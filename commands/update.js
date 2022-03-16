@@ -35,19 +35,22 @@ const update = async () => {
 
     let currentLoserSelected;
 
-    let buttonsv2 = [];
-    let seperatedButtonsv2 = [];
-    for (let j = 0; j < counters.length; j++) {
-        buttonsv2.push(Markup.button.callback(counters[j].first_name, counters[j].first_name + "2"));
-    }
-
-    for (let i = 0; i < buttonsv2.length; i++) {
-        seperatedButtonsv2.push([buttonsv2[i]],);
-    }
 
     for (let i = 0; i < counters.length; i++) {
         update.action(counters[i].first_name, async (ctx) => {
             currentLoserSelected = counters[i];
+            let buttonsv2 = [];
+            let seperatedButtonsv2 = [];
+            for (let j = 0; j < counters.length; j++) {
+                if (currentLoserSelected !== counters[j]) buttonsv2.push(
+                    Markup.button.callback(counters[j].first_name, counters[j].first_name + "2"))
+                ;
+            }
+
+            for (let i = 0; i < buttonsv2.length; i++) {
+                seperatedButtonsv2.push([buttonsv2[i]],);
+            }
+
             await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                 "Who won the bet though? 🤔", {
                 ...Markup.inlineKeyboard(seperatedButtonsv2)
