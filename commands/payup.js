@@ -34,7 +34,7 @@ const payup = async () => {
             for (let i = 0; i < buttons.length; i++) {
                 seperatedButtons.push([buttons[i]],);
             }
-            await ctx.replyWithMarkdown("The current list of users that owe meals are shown below \n" +
+            await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
                 "\n_(Please click the name of the user that will be paying for the meal, " +
                 "or type cancel to terminate the update process.)_", {
                 ...Markup.inlineKeyboard(seperatedButtons)

@@ -15,7 +15,6 @@ const proof = async () => {
         const proofList = await ProofSchema.find();
         if (proofList.length < 1) {
             await ctx.reply("Sorry, looks like no meals have been recorded🙁");
-            await ctx.scene.leave();
         }
         if (proofList.length > 0) {
             let buttons = [];
@@ -25,10 +24,11 @@ const proof = async () => {
                     proofList[i].trade.meal_ower  + " payed " +
                     proofList[i].trade.meal_receiver + " (" +
                     proofList[i].createdAt.getUTCDate() + "." +
-                    proofList[i].createdAt.getUTCMonth() + "." +
+                    (proofList[i].createdAt.getUTCMonth() + 1) + "." +
                     proofList[i].createdAt.getUTCFullYear() + ")",
                     JSON.stringify(proofList[i].createdAt)));
             }
+            buttons.reverse();
             for (let i = 0; i < buttons.length; i++) {
                 seperatedButtons.push([buttons[i]],);
             }
@@ -44,8 +44,8 @@ const proof = async () => {
                     await ctx.replyWithPhoto({url: proofList[i].proof_img_url});
                 })
             }
-            await ctx.scene.leave();
         }
+        await ctx.scene.leave();
     });
     stage.register(proofScene)
     bot.command('proof', (ctx) => ctx.scene.enter('proof'));

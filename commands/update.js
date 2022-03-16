@@ -25,7 +25,7 @@ const update = async () => {
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
-        ctx.replyWithMarkdown("The current list of active users are shown below\n" +
+        ctx.replyWithMarkdown("The current list of active users are shown below📝\n" +
             "\n_(Please click the name of the user that lost a bet, or type cancel to terminate the update process.)_",
             {
                 ...Markup.inlineKeyboard(seperatedButtons)
