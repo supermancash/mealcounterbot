@@ -60,44 +60,40 @@ const update = async () => {
 
     for (let i = 0; i < counters.length; i++) {
         update.action((counters[i].first_name + "2"), async (ctx) => {
-            try {
 
-                // check for user in list of meals owed
-                currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name)
-                    .length > 0 ?
-                    // if the receiver of the meal already exists, update the amount of meals received
-                    currentLoserSelected.meals_owed.map(obj => {
-                        if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
-                    })
-                    :
-                    // if the receiver doesn't exits add him to the list of meals owed
-                    currentLoserSelected.meals_owed.push(
-                        {
-                            "meal_receiver": counters[i].first_name,
-                            "amount": 1
-                        }
-                    );
-
-                // update the array in the database
-                await CounterSchema.findOneAndUpdate(
-                    {"first_name": currentLoserSelected.first_name},
-                    {"meals_owed": currentLoserSelected.meals_owed}
+            // check for user in list of meals owed
+            currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name)
+                .length > 0 ?
+                // if the receiver of the meal already exists, update the amount of meals received
+                currentLoserSelected.meals_owed.map(obj => {
+                    if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
+                })
+                :
+                // if the receiver doesn't exits add him to the list of meals owed
+                currentLoserSelected.meals_owed.push(
+                    {
+                        "meal_receiver": counters[i].first_name,
+                        "amount": 1
+                    }
                 );
 
-                // reply to user
-                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
-                    " now owes " + counters[i].first_name + " another meal. 🍔*");
+            // update the array in the database
+            await CounterSchema.findOneAndUpdate(
+                {"first_name": currentLoserSelected.first_name},
+                {"meals_owed": currentLoserSelected.meals_owed}
+            );
 
-                // text the loser of the bet that they now owe another meal to the specified other user
-                await bot.telegram.sendMessage(
-                    currentLoserSelected.id,
-                    userTextingWithBot + " updated the meals owed list:\n\n" +
-                    "--> Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
+            // reply to user
+            await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
+                " now owes " + counters[i].first_name + " another meal. 🍔*");
 
-                await ctx.scene.leave();
-            } catch (err) {
-                console.log(err)
-            }
+            // text the loser of the bet that they now owe another meal to the specified other user
+            await bot.telegram.sendMessage(
+                currentLoserSelected.id,
+                userTextingWithBot + " updated the meals owed list:\n\n" +
+                "--> Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
+
+            await ctx.scene.leave();
         });
     }
 

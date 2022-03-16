@@ -3,7 +3,8 @@ import UserSchema from "./dao/models/User.js";
 import {Scenes, Telegraf} from "telegraf";
 import CounterSchema from "./dao/models/Counter.js";
 
-const bot = new Telegraf("5206027815:AAHzEI2LNVOavq-c8ScWb76AUfPUjka8xtI");
+// bot initialisation
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
 bot.start(async (ctx) => {
         const user = new UserSchema(ctx.update.message.from);
@@ -35,4 +36,5 @@ process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
 export default bot;
 
+// provide for scenes (telegram commands that need a dialogue)
 export const stage = new Scenes.Stage();
