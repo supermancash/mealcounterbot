@@ -28,7 +28,8 @@ bot.start(async (ctx) => {
             "colleagues in your team :)" +
             "\n\n*Use these commands to control me:*" +
             "\n\n/show - show the current status of owed meals" +
-            "\n/update - update the status of owed meals" +
+            "\n/won - record a new bet that was won" +
+            "\n/lost - record a new bet that was lost" +
             "\n/payup - record a new meal and decrement the list" +
             "\n/proof - show the list of pictures of past meals" +
             "\n/help - show the list of commands and their functions (or just type / to see them)"

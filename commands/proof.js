@@ -25,7 +25,7 @@ const proof = async () => {
             proofList.reverse();
             await ctx.replyWithMarkdown("The list below shows the most recent meals eaten😋\n" +
                 "\n_(Please click the date of the image you would like to see, " +
-                "or type cancel to terminate the update process.)_",
+                "or type cancel to terminate the lost process.)_",
                 {
                     ...Markup.inlineKeyboard(ButtonArrayService(
                         proofList,

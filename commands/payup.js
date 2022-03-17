@@ -42,7 +42,7 @@ const payup = async () => {
         if (owers.length > 0) {
             await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
                 "\n_(Please click the name of the user that will be paying for the meal, " +
-                "or type cancel to terminate the update process.)_", {
+                "or type cancel to terminate the lost process.)_", {
                 ...Markup.inlineKeyboard(buttonArrayMaker(owers, ["first_name"], "update1"))
             });
             ctx.update.message === undefined ?
@@ -91,7 +91,7 @@ const payup = async () => {
                                     });
                                     await proof.save().catch(err => console.log(err));
 
-                                    // update the array in the database
+                                    // lost the array in the database
                                     await CounterSchema.findOneAndUpdate(
                                         {"first_name": currentPayerSelected.first_name},
                                         {"meals_owed": currentPayerSelected.meals_owed}

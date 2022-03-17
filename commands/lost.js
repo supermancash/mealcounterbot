@@ -4,28 +4,28 @@ import ButtonArrayService from "../service/ButtonArrayService.js";
 
 import {Markup, Scenes, session} from 'telegraf';
 
-const update = async () => {
+const lost = async () => {
     //TODO: add code annotations and clean up
     let counters
 
-    const update = new Scenes.BaseScene('update');
+    const lost = new Scenes.BaseScene('lost');
 
-    update.action("cancel", (ctx) => {
+    lost.action("cancel", (ctx) => {
         ctx.scene.leave();
         ctx.reply("Update process cancelled.")
     });
-    update.leave(() => console.log("Left Update Process"));
+    lost.leave(() => console.log("Left Update Process"));
     let userTextingWithBot;
 
 
-    update.enter(async (ctx) => {
-        update.action("back", async (ctx) => {
-            await ctx.scene.enter('update');
+    lost.enter(async (ctx) => {
+        lost.action("back", async (ctx) => {
+            await ctx.scene.enter('lost');
         });
 
         counters = await CounterSchema.find();
         await ctx.replyWithMarkdown("The current list of active users are shown below📝\n" +
-            "\n_(Please click the name of the user that lost a bet, or click cancel to terminate the update process.)_",
+            "\n_(Please click the name of the user that lost a bet, or click cancel to terminate the lost process.)_",
             {
                 ...Markup.inlineKeyboard(
                     ButtonArrayService(counters, ["first_name"], "update1")
@@ -41,7 +41,7 @@ const update = async () => {
 
 
         for (let i = 0; i < counters.length; i++) {
-            update.action(counters[i].first_name, async (ctx) => {
+            lost.action(counters[i].first_name, async (ctx) => {
                 currentLoserSelected = counters[i];
                 await ctx.replyWithMarkdown("Ok, so " + counters[i].first_name + " lost a bet. " +
                     "Who won the bet though? 🤔", {
@@ -57,12 +57,12 @@ const update = async () => {
         }
 
         for (let i = 0; i < counters.length; i++) {
-            update.action((counters[i].first_name + "2"), async (ctx) => {
+            lost.action((counters[i].first_name + "2"), async (ctx) => {
 
                 // check for user in list of meals owed
                 currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name)
                     .length > 0 ?
-                    // if the receiver of the meal already exists, update the amount of meals received
+                    // if the receiver of the meal already exists, lost the amount of meals received
                     currentLoserSelected.meals_owed.map(obj => {
                         if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
                     })
@@ -75,7 +75,7 @@ const update = async () => {
                         }
                     );
 
-                // update the array in the database
+                // lost the array in the database
                 await CounterSchema.findOneAndUpdate(
                     {"first_name": currentLoserSelected.first_name},
                     {"meals_owed": currentLoserSelected.meals_owed}
@@ -88,9 +88,14 @@ const update = async () => {
                 // text the loser of the bet that they now owe another meal to the specified other user
                 await bot.telegram.sendMessage(
                     currentLoserSelected.id,
-                    //TODO: usertextingwithbot not initialised correctly
                     userTextingWithBot + " updated the meals owed list:\n\n" +
                     "--> Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
+
+                // text the winner of the bet that they now get another meal from the specified other user
+                await bot.telegram.sendMessage(
+                    counters[i].id,
+                    userTextingWithBot + " updated the meals owed list:\n\n" +
+                    "--> Looks like you won a bet! " + counters[i].first_name + " now owes you another meal");
 
                 await ctx.scene.leave();
             });
@@ -99,10 +104,10 @@ const update = async () => {
     });
 
 
-    stage.register(update)
+    stage.register(lost)
     bot.use(session());
     bot.use(stage.middleware());
-    bot.command('update', (ctx) => ctx.scene.enter('update'));
+    bot.command('lost', (ctx) => ctx.scene.enter('lost'));
 }
 
-export default update;
+export default lost;
