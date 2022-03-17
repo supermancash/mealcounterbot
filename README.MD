@@ -23,7 +23,9 @@ In order to run the mealcounterbot locally follow these steps:
    
 `TELEGRAM_BOT_TOKEN = <your bot token>`
 
-2. Run `npm run dev`
+2. Install dependencies using `npm install`
+
+3. Host the bot on your local machine `npm run dev`
 
 ## Running on Heroku
 Set the above environment variables in the heroku settings pannel of your app.
