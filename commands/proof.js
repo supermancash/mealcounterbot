@@ -4,11 +4,12 @@ import ProofSchema from "../dao/models/Proof.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
 
 const proof = async () => {
-    // TODO: authentication if proof is true to user that payed
+    //TODO: add code annotations and clean up
+    // TODO: authentication message with yes no buttons if proof to user that payed is adequate
 
     const proofScene = new Scenes.BaseScene('proof');
 
-    proofScene.hears("cancel", async (ctx) => {
+    proofScene.action("cancel", async (ctx) => {
         await ctx.scene.leave();
         await ctx.reply("proof process cancelled.")
     });

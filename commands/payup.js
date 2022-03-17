@@ -6,14 +6,21 @@ import ProofSchema from "../dao/models/Proof.js";
 import buttonArrayMaker from "../service/ButtonArrayService.js";
 
 const payup = async () => {
+    //TODO: add code annotations and clean up
+
     const payupScene = new Scenes.BaseScene('payup');
 
     // make sure that the user can cancel the process and the cancellation is logged
-    payupScene.hears("cancel", (ctx) => {
+    payupScene.action("cancel", (ctx) => {
         ctx.scene.leave();
         ctx.reply("payup process cancelled.")
     });
     payupScene.leave(() => console.log("Left Payup Process"));
+
+    payupScene.action("back", async (ctx) => {
+        await ctx.scene.leave();
+        await ctx.scene.enter('payup');
+    });
 
     let userTextingWithBot;
     let counters = [], owers = [];
@@ -38,7 +45,9 @@ const payup = async () => {
                 "or type cancel to terminate the update process.)_", {
                 ...Markup.inlineKeyboard(buttonArrayMaker(owers, ["first_name"], "update1"))
             });
-            userTextingWithBot = ctx.update.message.from.first_name;
+            ctx.update.message === undefined ?
+                userTextingWithBot = ctx.update.callback_query.from.first_name :
+                userTextingWithBot = ctx.update.message.from.first_name;
 
             let currentPayerSelected;
 
