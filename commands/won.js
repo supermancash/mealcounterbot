@@ -12,9 +12,9 @@ const won = async () => {
 
     won.action("cancel", (ctx) => {
         ctx.scene.leave();
-        ctx.reply("Update process cancelled.")
+        ctx.reply("Won process cancelled.")
     });
-    won.leave(() => console.log("Left Update Process"));
+    won.leave(() => console.log("Left Won Process"));
     let userTextingWithBot;
 
 
@@ -36,7 +36,6 @@ const won = async () => {
             userTextingWithBot = ctx.update.callback_query.from.first_name :
             userTextingWithBot = ctx.update.message.from.first_name;
         let currentWinnerSelected;
-
 
         for (let i = 0; i < counters.length; i++) {
             won.action(counters[i].first_name, async (ctx) => {
@@ -93,7 +92,7 @@ const won = async () => {
                     currentWinnerSelected.id,
                     userTextingWithBot + " updated the meals owed list:\n\n" +
                     "--> Looks like you won a bet! " + counters[i].first_name + " now owes you another meal");
-
+                // TODO: check wrong name bug
                 await ctx.scene.leave();
             });
         }

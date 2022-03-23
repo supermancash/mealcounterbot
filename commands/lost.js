@@ -12,9 +12,9 @@ const lost = async () => {
 
     lost.action("cancel", (ctx) => {
         ctx.scene.leave();
-        ctx.reply("Update process cancelled.")
+        ctx.reply("Lost process cancelled.")
     });
-    lost.leave(() => console.log("Left Update Process"));
+    lost.leave(() => console.log("Left lost Process"));
     let userTextingWithBot;
 
 
@@ -32,7 +32,6 @@ const lost = async () => {
                 )
             });
 
-        console.log("ctx: " + ctx)
 
         ctx.update.message === undefined ?
             userTextingWithBot = ctx.update.callback_query.from.first_name :

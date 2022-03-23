@@ -6,7 +6,7 @@ const schema = new mongoose.Schema(
             meal_ower: {type: String, required: true},
             meal_receiver: {type: String, required: true},
         },
-        proof_img_url: {type: String, required: true}
+        proof_img: {data: String}
     },
     {
         timestamps: true

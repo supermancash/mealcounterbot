@@ -29,15 +29,23 @@ const proof = async () => {
                 {
                     ...Markup.inlineKeyboard(ButtonArrayService(
                         proofList,
-                        ["trade.meal_ower", "trade.meal_receiver" ,"createdAt"],
+                        ["trade.meal_ower", "trade.meal_receiver", "createdAt"],
                         "proof"
                     ))
                 }
             );
+
             for (let i = 0; i < proofList.length; i++) {
                 proofScene.action(JSON.stringify(proofList[i].createdAt), async (ctx) => {
-                    await ctx.replyWithPhoto({url: proofList[i].proof_img_url});
-                    await ctx.reply("To see another picture, please restart the proof process.\n(/proof)")
+                    await ctx.replyWithPhoto({source: Buffer.from(proofList[i].proof_img.data, 'base64')} )
+                        .then(() => {
+                            ctx.reply("To see another picture, please restart the proof process.\n(/proof)");
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            ctx.reply("I encountered an error fetching the specified proof. " +
+                                "Please try again at a later time. (/proof)");
+                        });
                     await ctx.scene.leave();
                 })
             }

@@ -1,9 +1,11 @@
 import bot, {stage} from "../bot.js";
 
 import {Markup, Scenes, session} from "telegraf";
+import fetch from "node-fetch";
+
 import CounterSchema from "../dao/models/Counter.js";
-import ProofSchema from "../dao/models/Proof.js";
 import buttonArrayMaker from "../service/ButtonArrayService.js";
+import ProofSchema from "../dao/models/Proof.js";
 
 const payup = async () => {
     //TODO: add code annotations and clean up
@@ -81,17 +83,23 @@ const payup = async () => {
 
                         payupScene.on("photo", (ctx) => {
                             ctx.telegram.getFileLink(ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id)
-                                .then(async (url) => {
+                                .then(async (imageObj) => {
+                                    const response = await fetch(imageObj.href);
+                                    const data = await response.buffer();
+                                    const b64 = data.toString('base64');
+
                                     const proof = new ProofSchema({
                                         trade: {
                                             meal_ower: currentPayerSelected.first_name,
                                             meal_receiver: currentReceiverSelected
                                         },
-                                        proof_img_url: url.href
+                                        proof_img: {
+                                            data: b64
+                                        }
                                     });
                                     await proof.save().catch(err => console.log(err));
 
-                                    // lost the array in the database
+                                    // update the array in the database
                                     await CounterSchema.findOneAndUpdate(
                                         {"first_name": currentPayerSelected.first_name},
                                         {"meals_owed": currentPayerSelected.meals_owed}
@@ -128,7 +136,6 @@ const payup = async () => {
                                     );
 
                                     await ctx.scene.leave();
-
                                 });
                         });
                     }
