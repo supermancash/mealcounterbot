@@ -37,7 +37,9 @@ const proof = async () => {
 
             for (let i = 0; i < proofList.length; i++) {
                 proofScene.action(JSON.stringify(proofList[i].createdAt), async (ctx) => {
-                    await ctx.replyWithPhoto({source: Buffer.from(proofList[i].proof_img.data, 'base64')} )
+                    await ctx.replyWithPhoto(
+                        {source: Buffer.from(proofList[i].proof_img.data, 'base64')},
+                        {caption: "This meal was cashed in regarding the following bet: \n" + proofList[i].trade.bet})
                         .then(() => {
                             ctx.reply("To see another picture, please restart the proof process.\n(/proof)");
                         })

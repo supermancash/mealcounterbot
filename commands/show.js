@@ -28,6 +28,9 @@ const show = async () => {
                             + counters[i].meals_owed[j].amount + " meal";
                         if (counters[i].meals_owed[j].amount > 1) reply += "s";
                         reply += "\n";
+                        for (let k = 0; k < counters[i].meals_owed[j].bets.length; k++) {
+                            reply += "      _-->" + counters[i].meals_owed[j].bets[k] + "_\n";
+                        }
                     }
                 }
             }

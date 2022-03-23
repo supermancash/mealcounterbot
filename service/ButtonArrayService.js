@@ -33,7 +33,6 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
                 )
             );
         }
-        // add 2 to callback if second time
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
@@ -51,6 +50,19 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
             seperatedButtons.push([buttons[i]],);
         }
         seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")])
+    }
+
+    if (type==="payup") {
+        for (let i = 0; i < buttonContent.length; i++) {
+            buttons.push(Markup.button.callback(
+                    buttonContent[i],
+                    buttonContent[i]
+                )
+            );
+        }
+        for (let i = 0; i < buttons.length; i++) {
+            seperatedButtons.push([buttons[i]],);
+        }
     }
 
     seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")]);

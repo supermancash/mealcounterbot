@@ -5,7 +5,8 @@ const schema = new mongoose.Schema({
     first_name: {type: String, required: true},
     meals_owed: [{
         meal_receiver: {type: String, required: true},
-        amount: {type: Number, required: true}
+        amount: {type: Number, required: true},
+        bets: []
     }]
 });
 

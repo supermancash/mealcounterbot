@@ -71,72 +71,92 @@ const payup = async () => {
                     for (let k = 0; k < currentPayerSelected.meals_owed.length; k++) {
                         payupScene.action((currentPayerSelected.meals_owed[k].meal_receiver + "2"), async (ctx) => {
                             currentReceiverSelected = currentPayerSelected.meals_owed[k].meal_receiver;
-                            currentPayerSelected.meals_owed[k].amount === 1 ?
-                                currentPayerSelected.meals_owed.splice(k, 1) :
-                                currentPayerSelected.meals_owed[k].amount -= 1;
-
                             await ctx.replyWithMarkdown(
-                                "Ok, almost done :)\n" +
-                                "To proceed, please provide proof of the meal in the form of a picture📸"
+                                "Please select the bet that " +
+                                currentReceiverSelected +
+                                " is cashing in.", {
+                                    ...Markup.inlineKeyboard(
+                                        buttonArrayMaker(
+                                            currentPayerSelected.meals_owed[k].bets,
+                                            [""],
+                                            "payup"
+                                        )
+                                    )
+                                }
                             );
-                        });
+                            for (let j = 0; j < currentPayerSelected.meals_owed[k].bets.length; j++) {
+                                payupScene.action(currentPayerSelected.meals_owed[k].bets[j], async (ctx) => {
+                                    await ctx.replyWithMarkdown(
+                                        "Ok, almost done :)\n" +
+                                        "To finish the payup process, " +
+                                        "please provide proof of the meal in the form of a picture📸"
+                                    );
 
-                        payupScene.on("photo", (ctx) => {
-                            ctx.telegram.getFileLink(ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id)
-                                .then(async (imageObj) => {
-                                    const response = await fetch(imageObj.href);
-                                    const data = await response.buffer();
-                                    const b64 = data.toString('base64');
+                                    payupScene.on("photo", (ctx) => {
+                                        ctx.telegram.getFileLink(ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id)
+                                            .then(async (imageObj) => {
+                                                const response = await fetch(imageObj.href);
+                                                const data = await response.buffer();
+                                                const b64 = data.toString('base64');
 
-                                    const proof = new ProofSchema({
-                                        trade: {
-                                            meal_ower: currentPayerSelected.first_name,
-                                            meal_receiver: currentReceiverSelected
-                                        },
-                                        proof_img: {
-                                            data: b64
-                                        }
+                                                const proof = new ProofSchema({
+                                                    trade: {
+                                                        meal_ower: currentPayerSelected.first_name,
+                                                        meal_receiver: currentReceiverSelected,
+                                                        bet: currentPayerSelected.meals_owed[k].bets[j]
+                                                    },
+                                                    proof_img: {
+                                                        data: b64
+                                                    }
+                                                });
+                                                await proof.save().catch(err => console.log(err));
+
+                                                // update the array in the database
+                                                currentPayerSelected.meals_owed[k].bets.splice(j , 1);
+                                                currentPayerSelected.meals_owed[k].amount === 1 ?
+                                                    currentPayerSelected.meals_owed.splice(k, 1) :
+                                                    currentPayerSelected.meals_owed[k].amount -= 1;
+                                                await CounterSchema.findOneAndUpdate(
+                                                    {"first_name": currentPayerSelected.first_name},
+                                                    {"meals_owed": currentPayerSelected.meals_owed}
+                                                );
+                                                // reply to user
+                                                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
+                                                    currentPayerSelected.first_name + " payed for " +
+                                                    currentReceiverSelected + "'s meal.*\n\n" +
+                                                    "PS: Your picture has been uploaded as evidence. 🖼");
+
+                                                // text the loser of the bet that they now owe another meal to the specified other user
+                                                let textForMessage =
+                                                    userTextingWithBot +
+                                                    " updated the meals owed list:\n\n" +
+                                                    "--> Looks like you payed up your ";
+                                                if (currentPayerSelected.meals_owed.length > 0) {
+                                                    textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
+                                                    for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
+                                                        textForMessage +=
+                                                            currentPayerSelected.meals_owed[j].meal_receiver + " " +
+                                                            currentPayerSelected.meals_owed[j].amount;
+                                                        textForMessage +=
+                                                            currentPayerSelected.meals_owed[j].amount > 1 ? " meals" : " meal";
+                                                        textForMessage += "\n";
+                                                    }
+                                                }
+                                                if (currentPayerSelected.meals_owed.length < 1) {
+                                                    textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
+                                                }
+
+                                               await bot.telegram.sendMessage(
+                                                    currentPayerSelected.id,
+                                                    textForMessage
+                                                );
+
+                                                await ctx.scene.leave();
+                                            });
                                     });
-                                    await proof.save().catch(err => console.log(err));
 
-                                    // update the array in the database
-                                    await CounterSchema.findOneAndUpdate(
-                                        {"first_name": currentPayerSelected.first_name},
-                                        {"meals_owed": currentPayerSelected.meals_owed}
-                                    );
-                                    // reply to user
-                                    await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
-                                        currentPayerSelected.first_name + " payed for " +
-                                        currentReceiverSelected + "'s meal.*\n\n" +
-                                        "PS: Your picture has been uploaded as evidence. 🖼");
-
-                                    // text the loser of the bet that they now owe another meal to the specified other user
-                                    let textForMessage =
-                                        userTextingWithBot +
-                                        " updated the meals owed list:\n\n" +
-                                        "--> Looks like you payed up your ";
-                                    if (currentPayerSelected.meals_owed.length > 0) {
-                                        textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
-                                        for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
-                                            textForMessage +=
-                                                currentPayerSelected.meals_owed[j].meal_receiver + " " +
-                                                currentPayerSelected.meals_owed[j].amount;
-                                            textForMessage +=
-                                                currentPayerSelected.meals_owed[j].amount > 1 ? " meals" : " meal";
-                                            textForMessage += "\n";
-                                        }
-                                    }
-                                    if (currentPayerSelected.meals_owed.length < 1) {
-                                        textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
-                                    }
-
-                                    await bot.telegram.sendMessage(
-                                        currentPayerSelected.id,
-                                        textForMessage
-                                    );
-
-                                    await ctx.scene.leave();
-                                });
+                                })
+                            }
                         });
                     }
                 });
