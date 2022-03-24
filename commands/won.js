@@ -12,9 +12,8 @@ const won = async () => {
 
     wonScene.action("cancel", (ctx) => {
         ctx.scene.leave();
-        ctx.reply("Won process cancelled.")
     });
-    wonScene.leave(() => console.log("Left Won Process"));
+    wonScene.leave((ctx) => ctx.replyWithMarkdown("`(left won process)`"));
     let userTextingWithBot;
 
 

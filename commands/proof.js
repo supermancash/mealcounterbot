@@ -11,9 +11,8 @@ const proof = async () => {
 
     proofScene.action("cancel", async (ctx) => {
         await ctx.scene.leave();
-        await ctx.reply("proof process cancelled.")
     });
-    proofScene.leave(() => console.log("Left Proof Process"));
+    proofScene.leave((ctx) => ctx.replyWithMarkdown("`(left proof process)`"));
 
     proofScene.enter(async (ctx) => {
         const proofList = await ProofSchema.find();

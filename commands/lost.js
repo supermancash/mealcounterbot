@@ -12,9 +12,8 @@ const lost = async () => {
 
     lostScene.action("cancel", (ctx) => {
         ctx.scene.leave();
-        ctx.reply("Lost process cancelled.")
     });
-    lostScene.leave(() => console.log("Left lost Process"));
+    lostScene.leave((ctx) => ctx.replyWithMarkdown("`(left lost process)`"));
     let userTextingWithBot;
 
 

@@ -15,9 +15,8 @@ const payup = async () => {
     // make sure that the user can cancel the process and the cancellation is logged
     payupScene.action("cancel", (ctx) => {
         ctx.scene.leave();
-        ctx.reply("payup process cancelled.")
     });
-    payupScene.leave(() => console.log("Left Payup Process"));
+    payupScene.leave((ctx) => ctx.replyWithMarkdown("`(left payup process)`"));
 
     payupScene.action("back", async (ctx) => {
         await ctx.scene.leave();
@@ -57,7 +56,7 @@ const payup = async () => {
                 payupScene.action(owers[i].first_name, async (ctx) => {
                     currentPayerSelected = owers[i];
                     await ctx.replyWithMarkdown("Ok, so " + owers[i].first_name + " will be paying. " +
-                        "Who is cashing in their meal? 🤑", {
+                        "Who is cashing in their meal?🤑", {
                         ...Markup.inlineKeyboard(
                             buttonArrayMaker(
                                 currentPayerSelected.meals_owed,
@@ -124,7 +123,7 @@ const payup = async () => {
                                                 await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
                                                     currentPayerSelected.first_name + " payed for " +
                                                     currentReceiverSelected + "'s meal.*\n\n" +
-                                                    "PS: Your picture has been uploaded as evidence. 🖼");
+                                                    "PS: Your picture has been uploaded as evidence.🖼");
 
                                                 // text the loser of the bet that they now owe another meal to the specified other user
                                                 let textForMessage =
