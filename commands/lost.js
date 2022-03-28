@@ -5,23 +5,24 @@ import ButtonArrayService from "../service/ButtonArrayService.js";
 import {Markup, Scenes, session} from 'telegraf';
 
 const lost = async () => {
-    //TODO: add code annotations and clean up
-    let counters
 
     const lostScene = new Scenes.BaseScene('lost');
 
+// adding listener for cancellation and that the cancellation is shown to the user
     lostScene.action("cancel", (ctx) => {
         ctx.scene.leave();
     });
     lostScene.leave((ctx) => ctx.replyWithMarkdown("`(left lost process)`"));
-    let userTextingWithBot;
+
+    lostScene.action("back", async (ctx) => {
+        await ctx.scene.enter('lost');
+    });
 
 
     lostScene.enter(async (ctx) => {
-        lostScene.action("back", async (ctx) => {
-            await ctx.scene.enter('lost');
-        });
+        let counters, userTextingWithBot, currentLoserSelected;
 
+    // get counters from db and let the user choose who lost the bet
         counters = await CounterSchema.find();
         await ctx.replyWithMarkdown("The current list of active users are shown below📝\n" +
             "\n_(Please click the name of the user that lost a bet, or click cancel to terminate the lost process.)_",
@@ -31,11 +32,10 @@ const lost = async () => {
                 )
             });
 
-
+    // define userTextingWithBot variable
         ctx.update.message === undefined ?
             userTextingWithBot = ctx.update.callback_query.from.first_name :
             userTextingWithBot = ctx.update.message.from.first_name;
-        let currentLoserSelected;
 
 
         for (let i = 0; i < counters.length; i++) {
@@ -70,16 +70,16 @@ const lost = async () => {
 
                 lostScene.hears(/.*/, async (ctx) => {
 
-// check for user in list of meals owed
+                // check for user in list of meals owed
                     currentLoserSelected.meals_owed.filter(object => object.meal_receiver === counters[i].first_name)
                         .length > 0 ?
-                        // if the receiver of the meal already exists, lost the amount of meals received
+                    // if the receiver of the meal already exists, lost the amount of meals received
                         currentLoserSelected.meals_owed.map(obj => {
                             if (obj.meal_receiver === counters[i].first_name) obj.amount += 1;
                             obj.bets.push(ctx.message.text)
                         })
                         :
-                        // if the receiver doesn't exits add him to the list of meals owed
+                    // if the receiver doesn't exits add him to the list of meals owed
                         currentLoserSelected.meals_owed.push(
                             {
                                 "meal_receiver": counters[i].first_name,
@@ -88,23 +88,23 @@ const lost = async () => {
                             }
                         );
 
-// update the array in the database
+                // update the array in the database
                     await CounterSchema.findOneAndUpdate(
                         {"first_name": currentLoserSelected.first_name},
                         {"meals_owed": currentLoserSelected.meals_owed}
                     );
 
-// reply to user
+                // reply to user
                     await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
                         " now owes " + counters[i].first_name + " another meal. 🍔*");
 
-// text the loser of the bet that they now owe another meal to the specified other user
+                // text the loser of the bet that they now owe another meal to the specified other user
                     await bot.telegram.sendMessage(
                         currentLoserSelected.id,
                         userTextingWithBot + " updated the meals owed list:\n\n" +
                         "--> Looks like you lost a bet! You now owe " + counters[i].first_name + " another meal");
 
-// text the winner of the bet that they now get another meal from the specified other user
+                // text the winner of the bet that they now get another meal from the specified other user
                     await bot.telegram.sendMessage(
                         counters[i].id,
                         userTextingWithBot + " updated the meals owed list:\n\n" +
@@ -114,10 +114,9 @@ const lost = async () => {
                 });
             });
         }
-
     });
 
-
+// connecting scene with rest of bot
     stage.register(lostScene)
     bot.use(session());
     bot.use(stage.middleware());

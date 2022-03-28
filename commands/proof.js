@@ -4,7 +4,6 @@ import ProofSchema from "../dao/models/Proof.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
 
 const proof = async () => {
-    //TODO: add code annotations and clean up
     // TODO: authentication message with yes no buttons if proof to user that payed is adequate
 
     const proofScene = new Scenes.BaseScene('proof');

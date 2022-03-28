@@ -5,7 +5,6 @@ import ButtonArrayService from "../service/ButtonArrayService.js";
 import {Markup, Scenes, session} from 'telegraf';
 
 const won = async () => {
-//TODO: add code annotations and clean up
     let counters
 
     const wonScene = new Scenes.BaseScene('won');
@@ -67,16 +66,16 @@ const won = async () => {
                 );
                 wonScene.hears(/.*/, async (ctx) => {
 
-// check for user in list of meals owed of the loser
+                // check for user in list of meals owed of the loser
                     counters[i].meals_owed.filter(object => object.meal_receiver === currentWinnerSelected.first_name)
                         .length > 0 ?
-// if the receiver of the meal already exists, add another meal owed
+                    // if the receiver of the meal already exists, add another meal owed
                         counters[i].meals_owed.map(obj => {
                             if (obj.meal_receiver === currentWinnerSelected.first_name) obj.amount += 1;
                             obj.bets.push(ctx.message.text)
                         })
                         :
-// if the receiver doesn't exist add them to the list of meals owed
+                    // if the receiver doesn't exist add them to the list of meals owed
                         counters[i].meals_owed.push(
                             {
                                 "meal_receiver": currentWinnerSelected.first_name,
@@ -85,28 +84,28 @@ const won = async () => {
                             }
                         );
 
-// update the array in the database
+                // update the array in the database
                     await CounterSchema.findOneAndUpdate(
                         {"first_name": counters[i].first_name},
                         {"meals_owed": counters[i].meals_owed}
                     );
 
-// reply to user
+                // reply to user
                     await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + counters[i].first_name +
                         " now owes " + currentWinnerSelected.first_name + " another meal.🍔*");
 
-// text the loser of the bet that they now owe another meal to the specified other user
+                // text the loser of the bet that they now owe another meal to the specified other user
                     await bot.telegram.sendMessage(
                         counters[i].id,
                         userTextingWithBot + " updated the meals owed list:\n\n" +
                         "--> Looks like you lost a bet! You now owe " + currentWinnerSelected.first_name + " another meal");
 
-// text the winner of the bet that they now get another meal from the specified other user
+                // text the winner of the bet that they now get another meal from the specified other user
+                // TODO: check wrong name bug
                     await bot.telegram.sendMessage(
                         currentWinnerSelected.id,
                         userTextingWithBot + " updated the meals owed list:\n\n" +
                         "--> Looks like you won a bet! " + counters[i].first_name + " now owes you another meal");
-// TODO: check wrong name bug
                     await ctx.scene.leave();
 
                 })
@@ -115,7 +114,7 @@ const won = async () => {
 
     });
 
-
+// connecting scene with rest of bot
     stage.register(wonScene)
     bot.use(session());
     bot.use(stage.middleware());
