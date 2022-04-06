@@ -86,8 +86,12 @@ const won = async () => {
                     // text the loser of the bet that they now owe another meal to the specified other user
                     await bot.telegram.sendMessage(
                         currentLoserSelected.id,
-                        userTextingWithBot + " updated the meals owed list:\n\n" +
-                        "--> Looks like you lost a bet! You now owe " + currentWinnerSelected.first_name + " another meal");
+                        userTextingWithBot +
+                        " updated the meals owed list:\n\n" +
+                        "--> Looks like you lost a bet! You now owe " +
+                        currentWinnerSelected.first_name +
+                        " another meal"
+                    );
 
                     // text the winner of the bet that they now get another meal from the specified other user
                     // TODO: check wrong name bug

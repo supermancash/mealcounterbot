@@ -49,7 +49,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
-        seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")])
+        seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")]);
     }
 
     if (type==="payup") {
@@ -63,8 +63,8 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
+        seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")]);
     }
-
     seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")]);
 
     return seperatedButtons;

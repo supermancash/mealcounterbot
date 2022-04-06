@@ -22,41 +22,40 @@ const payup = async () => {
     });
 
     payupScene.enter(async (ctx) => {
-        let userTextingWithBot, counters, owers;
+        let userTextingWithBot, counters, owers, currentPayerSelected, currentReceiverSelected;
 
-    // get counters from db and filter out only counters that actually owe meals
+        // get counters from db and filter out only counters that actually owe meals
         counters = await CounterSchema.find();
         owers = counters.filter(obj => {
             if (obj.meals_owed.length > 0) return obj;
         });
 
-    // if nobody owes anything, tell the user and cancel the process
+        // if nobody owes anything, tell the user and cancel the process
         if (owers.length < 1) {
             await ctx.reply("Looks like no meals are owed, no one has to pay up if nothing is owed🙈");
             await ctx.scene.leave();
         }
 
-    // if anyone owes something run the process
+        // if anyone owes something run the process
         if (owers.length > 0) {
-        // let the user select the person that will payup the meal
+            // let the user select the person that will payup the meal
             await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
                 "\n_(Please click the name of the user that will be paying for the meal, " +
                 "or type cancel to terminate the lost process.)_", {
                 ...Markup.inlineKeyboard(buttonArrayMaker(owers, ["first_name"], "update1"))
             });
 
-        // defining the userTextingWithBot variable
+            // defining the userTextingWithBot variable
             ctx.update.message === undefined ?
                 userTextingWithBot = ctx.update.callback_query.from.first_name :
                 userTextingWithBot = ctx.update.message.from.first_name;
 
-            let currentPayerSelected;
 
-        // adding action listeners for all possible owers, then asking the user who's meal the ower is paying
+            // adding action listeners for all possible owers, then asking the user who's meal the ower is paying
             for (let i = 0; i < owers.length; i++) {
                 payupScene.action(owers[i].first_name, async (ctx) => {
                     currentPayerSelected = owers[i];
-                    await ctx.replyWithMarkdown("Ok, so " + owers[i].first_name + " will be paying. " +
+                    await ctx.replyWithMarkdown("Ok, so " + currentPayerSelected.first_name + " will be paying. " +
                         "Who is cashing in their meal?🤑", {
                         ...Markup.inlineKeyboard(
                             buttonArrayMaker(
@@ -67,14 +66,13 @@ const payup = async () => {
                         )
                     });
 
-                    let currentReceiverSelected;
-                // adding action listeners for all possible receivers, after the ower has been selected
+                    // adding action listeners for all possible receivers, after the ower has been selected
                     for (let k = 0; k < currentPayerSelected.meals_owed.length; k++) {
                         payupScene.action((currentPayerSelected.meals_owed[k].meal_receiver + "2"), async (ctx) => {
-                            currentReceiverSelected = currentPayerSelected.meals_owed[k].meal_receiver;
+                            currentReceiverSelected = currentPayerSelected.meals_owed[k];
                             await ctx.replyWithMarkdown(
                                 "Please select the bet that " +
-                                currentReceiverSelected +
+                                currentReceiverSelected.meal_receiver +
                                 " is cashing in.", {
                                     ...Markup.inlineKeyboard(
                                         buttonArrayMaker(
@@ -86,8 +84,8 @@ const payup = async () => {
                                 }
                             );
 
-                        // lastly add listeners for the selected receiver and
-                        // ask the user for an image as proof for the meal being paid
+                            // lastly add listeners for the selected receiver and
+                            // ask the user for an image as proof for the meal being paid
                             for (let j = 0; j < currentPayerSelected.meals_owed[k].bets.length; j++) {
                                 payupScene.action(currentPayerSelected.meals_owed[k].bets[j], async (ctx) => {
                                     await ctx.replyWithMarkdown(
@@ -96,33 +94,33 @@ const payup = async () => {
                                         "please provide proof of the meal in the form of a picture📸"
                                     );
 
-                                // add listener for the proof picture
+                                    // add listener for the proof picture
                                     payupScene.on("photo", (ctx) => {
-                                    // get the image from the telegram api
+                                        // get the image from the telegram api
                                         ctx.telegram.getFileLink(
                                             ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id
                                         ).then(async (imageObj) => {
-                                        // change the image into a base64 string
+                                            // change the image into a base64 string
                                             const response = await fetch(imageObj.href);
                                             const data = await response.buffer();
                                             const b64 = data.toString('base64');
 
-                                        // create object to be saved to the db
+                                            // create object to be saved to the db
                                             const proof = new ProofSchema({
                                                 trade: {
                                                     meal_ower: currentPayerSelected.first_name,
-                                                    meal_receiver: currentReceiverSelected,
+                                                    meal_receiver: currentReceiverSelected.meal_receiver,
                                                     bet: currentPayerSelected.meals_owed[k].bets[j]
                                                 },
                                                 proof_img: {
                                                     data: b64
                                                 }
                                             });
-                                        // saving the proof obj to db
+                                            // saving the proof obj to db
                                             await proof.save().catch(err => console.log(err));
 
-                                        // update the counters in the database,
-                                        // because the user has payed up their owed meal
+                                            // update the counters in the database,
+                                            // because the user has payed up their owed meal
                                             currentPayerSelected.meals_owed[k].bets.splice(j, 1);
                                             currentPayerSelected.meals_owed[k].amount === 1 ?
                                                 currentPayerSelected.meals_owed.splice(k, 1) :
@@ -132,25 +130,28 @@ const payup = async () => {
                                                 {"meals_owed": currentPayerSelected.meals_owed}
                                             );
 
-                                        // tell user they're done and that the img was uploaded
+                                            // tell user they're done and that the img was uploaded
                                             await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
                                                 currentPayerSelected.first_name + " payed for " +
-                                                currentReceiverSelected + "'s meal.*\n\n" +
+                                                currentReceiverSelected.meal_receiver + "'s meal.*\n\n" +
                                                 "PS: Your picture has been uploaded as evidence.🖼");
 
-                                        // remotely text the ower that the payoff of their meal has been recorded
+                                            // remotely text the ower that the payoff of their meal has been recorded
                                             let textForMessage =
                                                 userTextingWithBot +
                                                 " updated the meals owed list:\n\n" +
                                                 "--> Looks like you payed up your ";
                                             if (currentPayerSelected.meals_owed.length > 0) {
                                                 textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
-                                                for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
+                                                for (let l = 0; l < currentPayerSelected.meals_owed.length; l++) {
                                                     textForMessage +=
-                                                        currentPayerSelected.meals_owed[j].meal_receiver + " " +
-                                                        currentPayerSelected.meals_owed[j].amount;
+                                                        currentPayerSelected.meals_owed[l].meal_receiver + " " +
+                                                        currentPayerSelected.meals_owed[l].amount;
                                                     textForMessage +=
-                                                        currentPayerSelected.meals_owed[j].amount > 1 ? " meals" : " meal";
+                                                        currentPayerSelected.meals_owed[l].amount > 1 ?
+                                                            " meals"
+                                                            :
+                                                            " meal";
                                                     textForMessage += "\n";
                                                 }
                                             }
