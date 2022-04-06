@@ -71,8 +71,10 @@ const won = async () => {
                         .length > 0 ?
                     // if the receiver of the meal already exists, add another meal owed
                         counters[i].meals_owed.map(obj => {
-                            if (obj.meal_receiver === currentWinnerSelected.first_name) obj.amount += 1;
-                            obj.bets.push(ctx.message.text)
+                            if (obj.meal_receiver === currentWinnerSelected.first_name) {
+                                obj.amount += 1;
+                                obj.bets.push(ctx.message.text);
+                            }
                         })
                         :
                     // if the receiver doesn't exist add them to the list of meals owed
