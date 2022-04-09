@@ -13,20 +13,19 @@ const payup = async () => {
 
 // adding listener for cancellation and that the cancellation is shown to the user
     payupScene.action("cancel", (ctx) => {
-        userTextingWithBot = counters = owers = currentPayerSelected = currentReceiverSelected = currentBetSelected
-            = undefined;
         ctx.scene.leave();
     });
     payupScene.leave((ctx) => ctx.replyWithMarkdown("`(left payup process)`"));
 
 // creating listener for when user clicks the back button while in the scene
     payupScene.action("back", async (ctx) => {
-        userTextingWithBot = counters = owers = currentPayerSelected = currentReceiverSelected = currentBetSelected
-            = undefined;
         await ctx.scene.enter('payup');
     });
 
     payupScene.enter(async (ctx) => {
+        userTextingWithBot = counters = owers = currentPayerSelected = currentReceiverSelected = currentBetSelected
+            = undefined;
+
         // get counters from db and filter out only counters that actually owe meals
         counters = await CounterSchema.find();
         owers = counters.filter(obj => {
