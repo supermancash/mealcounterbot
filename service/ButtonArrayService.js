@@ -1,7 +1,7 @@
 import {Markup} from "telegraf";
 
 
-const buttonArrayMaker = (buttonContent, attributeList, type) => {
+const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
     let buttons = [];
     let seperatedButtons = [];
 
@@ -25,7 +25,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
             seperatedButtons.push([buttons[i]],);
         }
     }
-    if (type==="update1") {
+    if (type==="update") {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
                     buttonContent[i].get(attributeList[0]),
@@ -36,20 +36,6 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
-    }
-
-    if (type==="update2") {
-        for (let i = 0; i < buttonContent.length; i++) {
-            buttons.push(Markup.button.callback(
-                    buttonContent[i].get(attributeList[0]),
-                    (buttonContent[i].get(attributeList[0]) + "2")
-                )
-            );
-        }
-        for (let i = 0; i < buttons.length; i++) {
-            seperatedButtons.push([buttons[i]],);
-        }
-        seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")]);
     }
 
     if (type==="payup") {
@@ -63,9 +49,9 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
         for (let i = 0; i < buttons.length; i++) {
             seperatedButtons.push([buttons[i]],);
         }
-        seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")]);
     }
-    seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")]);
+    if(backButton) seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")],);
+    seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")],);
 
     return seperatedButtons;
 }
