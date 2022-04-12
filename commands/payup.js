@@ -40,7 +40,7 @@ const payup = () => {
         await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
             "\n_(Please click the name of the user that will be paying for the meal, " +
             "or type cancel to terminate the lost process.)_", {
-            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name"], "update1"))
+            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name"], "update", false))
         });
         return ctx.wizard.next();
     }
@@ -61,7 +61,8 @@ const payup = () => {
                         ButtonArrayService(
                             ctx.session.payupData.mealPayer.meals_owed,
                             ["meal_receiver"],
-                            "update1"
+                            "update",
+                            true
                         )
                     )
                 }
@@ -85,7 +86,8 @@ const payup = () => {
                         ButtonArrayService(
                             ctx.session.payupData.mealReceiver.bets,
                             [""],
-                            "payup"
+                            "payup",
+                            true
                         )
                     )
                 }
