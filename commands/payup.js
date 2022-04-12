@@ -1,188 +1,212 @@
 import bot, {stage} from "../bot.js";
 
-import {Markup, Scenes, session} from "telegraf";
+import {Markup, Scenes} from "telegraf";
 import fetch from "node-fetch";
 
 import CounterSchema from "../dao/models/Counter.js";
-import buttonArrayMaker from "../service/ButtonArrayService.js";
 import ProofSchema from "../dao/models/Proof.js";
+import ButtonArrayService from "../service/ButtonArrayService.js";
 
-const payup = async () => {
-    let userTextingWithBot, counters, owers, currentPayerSelected, currentReceiverSelected, currentBetSelected;
-    const payupScene = new Scenes.BaseScene('payup');
+const payup = () => {
+    const payupScene = new Scenes.WizardScene(
+        'payup',
+        (ctx) =>
+            payupEntry(ctx),
+        (ctx) =>
+            payupLvl1(ctx),
+        (ctx) =>
+            payupLvl2(ctx),
+        (ctx) =>
+            payupLvl3(ctx),
+        (ctx) =>
+            photoCallback(ctx)
+    );
 
-// adding listener for cancellation and that the cancellation is shown to the user
-    payupScene.action("cancel", (ctx) => {
-        ctx.scene.leave();
-    });
-    payupScene.leave((ctx) => ctx.replyWithMarkdown("`(left payup process)`"));
-
-// creating listener for when user clicks the back button while in the scene
-    payupScene.action("back", async (ctx) => {
-        await ctx.scene.enter('payup');
-    });
-
-    payupScene.enter(async (ctx) => {
-        userTextingWithBot = counters = owers = currentPayerSelected = currentReceiverSelected = currentBetSelected
-            = undefined;
+    const payupEntry = async (ctx) => {
+        ctx.session.payupData = {};
 
         // get counters from db and filter out only counters that actually owe meals
-        counters = await CounterSchema.find();
-        owers = counters.filter(obj => {
-            if (obj.meals_owed.length > 0) return obj;
-        });
+        ctx.session.payupData.owers = await CounterSchema.find({"meals_owed.0": {"$exists": true}});
 
         // if nobody owes anything, tell the user and cancel the process
-        if (owers.length < 1) {
+        if (ctx.session.payupData.owers.length === 0) {
             await ctx.reply("Looks like no meals are owed, no one has to pay up if nothing is owed🙈");
             await ctx.scene.leave();
         }
 
-        // if anyone owes something run the process
-        if (owers.length > 0) {
-            // let the user select the person that will payup the meal
-            await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
-                "\n_(Please click the name of the user that will be paying for the meal, " +
-                "or type cancel to terminate the lost process.)_", {
-                ...Markup.inlineKeyboard(buttonArrayMaker(owers, ["first_name"], "update1"))
-            });
+        // owers.length > 0
 
-            // defining the userTextingWithBot variable
-            ctx.update.message === undefined ?
-                userTextingWithBot = ctx.update.callback_query.from.first_name :
-                userTextingWithBot = ctx.update.message.from.first_name;
+        // let the user select the person that will payup the meal
+        await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
+            "\n_(Please click the name of the user that will be paying for the meal, " +
+            "or type cancel to terminate the lost process.)_", {
+            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name"], "update1"))
+        });
+        return ctx.wizard.next();
+    }
 
+    const payupLvl1 = async (ctx) => {
+        if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
+        if (ctx.update.callback_query) {
+            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
 
-            // adding action listeners for all possible owers, then asking the user who's meal the ower is paying
-            for (let i = 0; i < owers.length; i++) {
-                payupScene.action(owers[i].first_name, async (ctx) => {
-                    currentPayerSelected = owers[i];
-                    await ctx.replyWithMarkdown("Ok, so " + currentPayerSelected.first_name + " will be paying. " +
-                        "Who is cashing in their meal?🤑", {
-                        ...Markup.inlineKeyboard(
-                            buttonArrayMaker(
-                                currentPayerSelected.meals_owed,
-                                ["meal_receiver"],
-                                "update2"
-                            )
+            ctx.session.payupData.mealPayer =
+                ctx.session.payupData.owers.filter((obj) => obj.first_name === ctx.update.callback_query.data)[0];
+            await ctx.replyWithMarkdown(
+                "Ok, so " + ctx.session.payupData.mealPayer.first_name +
+                " will be paying. " +
+                "Who is cashing in their meal?🤑",
+                {
+                    ...Markup.inlineKeyboard(
+                        ButtonArrayService(
+                            ctx.session.payupData.mealPayer.meals_owed,
+                            ["meal_receiver"],
+                            "update1"
                         )
-                    });
+                    )
+                }
+            );
+            return ctx.wizard.next();
+        }
+    }
 
-                    // adding action listeners for all possible receivers, after the ower has been selected
-                    for (let k = 0; k < currentPayerSelected.meals_owed.length; k++) {
-                        payupScene.action(
-                            (currentPayerSelected.meals_owed[k].meal_receiver + "2"),
-                            async (ctx) => {
-                                currentReceiverSelected = currentPayerSelected.meals_owed[k];
-                                await ctx.replyWithMarkdown(
-                                    "Please select the bet that " +
-                                    currentReceiverSelected.meal_receiver +
-                                    " is cashing in.", {
-                                        ...Markup.inlineKeyboard(
-                                            buttonArrayMaker(
-                                                currentReceiverSelected.bets,
-                                                [""],
-                                                "payup"
-                                            )
-                                        )
-                                    }
-                                );
+    const payupLvl2 = async (ctx) => {
+        if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
+        if (ctx.update.callback_query) {
+            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[1](ctx);
+            ctx.session.payupData.mealReceiver =
+                ctx.session.payupData.mealPayer.meals_owed.filter(
+                    (obj) => obj.meal_receiver === ctx.update.callback_query.data)[0];
+            await ctx.replyWithMarkdown(
+                "Please select the bet that " +
+                ctx.session.payupData.mealReceiver.meal_receiver +
+                " is cashing in with " + ctx.session.payupData.mealPayer.first_name, {
+                    ...Markup.inlineKeyboard(
+                        ButtonArrayService(
+                            ctx.session.payupData.mealReceiver.bets,
+                            [""],
+                            "payup"
+                        )
+                    )
+                }
+            );
+            return ctx.wizard.next();
+        }
+    }
 
-                                // lastly add listeners for the selected receiver and
-                                // ask the user for an image as proof for the meal being paid
-                                for (let j = 0; j < currentReceiverSelected.bets.length; j++) {
-                                    payupScene.action(currentReceiverSelected.bets[j], async (ctx) => {
-                                        currentBetSelected = currentReceiverSelected.bets[j];
-                                        await ctx.replyWithMarkdown(
-                                            "Ok, almost done :)\n" +
-                                            "To finish the payup process, " +
-                                            "please provide proof of the meal in the form of a picture📸"
-                                        );
+    const payupLvl3 = async (ctx) => {
+        if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
+        if (ctx.update.callback_query) {
+            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[2](ctx);
+            ctx.session.payupData.mealBet = ctx.session.payupData.mealReceiver.bets.filter((bet) => {
+                if (bet === ctx.update.callback_query.data) return bet;
+            })[0];
+            await ctx.replyWithMarkdown(
+                "Ok, almost done :)\n" +
+                "To finish the payup process, " +
+                "please provide proof of the meal in the form of a picture📸"
+            );
+            return ctx.wizard.next();
+        }
+    }
 
-                                        // add listener for the proof picture
-                                        payupScene.on("photo", (ctx) => {
-                                            // get the image from the telegram api
-                                            ctx.telegram.getFileLink(
-                                                ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id
-                                            ).then(async (imageObj) => {
-                                                // change the image into a base64 string
-                                                const response = await fetch(imageObj.href);
-                                                const data = await response.buffer();
-                                                const b64 = data.toString('base64');
+    const photoCallback = async (ctx) => {
+        if (!ctx.update.message.photo) await ctx.replyWithMarkdown("Please send a *picture* (jpeg, jpg, png etc.)");
+        if (ctx.update.message.photo) {
+            // get the image from the telegram api
+            await ctx.telegram.getFileLink(
+                ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id
+            ).then(async (imageObj) => {
+                // change the image into a base64 string
+                const response = await fetch(imageObj.href);
+                const data = await response.buffer();
+                const b64 = data.toString('base64');
 
-                                                // create object to be saved to the db
-                                                const proof = new ProofSchema({
-                                                    trade: {
-                                                        meal_ower: currentPayerSelected.first_name,
-                                                        meal_receiver: currentReceiverSelected.meal_receiver,
-                                                        bet: currentBetSelected
-                                                    },
-                                                    proof_img: {
-                                                        data: b64
-                                                    }
-                                                });
-                                                // saving the proof obj to db
-                                                await proof.save().catch(err => console.log(err));
-
-                                                // update the counters in the database,
-                                                // because the user has payed up their owed meal
-                                                currentReceiverSelected.bets.splice(j, 1);
-                                                currentReceiverSelected.amount === 1 ?
-                                                    currentPayerSelected.meals_owed.splice(k, 1) :
-                                                    currentPayerSelected.meals_owed[k].amount -= 1;
-                                                await CounterSchema.findOneAndUpdate(
-                                                    {"first_name": currentPayerSelected.first_name},
-                                                    {"meals_owed": currentPayerSelected.meals_owed}
-                                                );
-
-                                                // tell user they're done and that the img was uploaded
-                                                await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
-                                                    currentPayerSelected.first_name + " payed for " +
-                                                    currentReceiverSelected.meal_receiver + "'s meal.*\n\n" +
-                                                    "PS: Your picture has been uploaded as evidence.🖼");
-
-                                                // remotely text the ower that the payoff of their meal has been recorded
-                                                let textForMessage =
-                                                    userTextingWithBot +
-                                                    " updated the meals owed list:\n\n" +
-                                                    "--> Looks like you payed up your ";
-                                                if (currentPayerSelected.meals_owed.length > 0) {
-                                                    textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
-                                                    for (let j = 0; j < currentPayerSelected.meals_owed.length; j++) {
-                                                        textForMessage +=
-                                                            currentReceiverSelected.meal_receiver + " " +
-                                                            currentReceiverSelected.amount;
-                                                        textForMessage +=
-                                                            currentReceiverSelected.amount > 1 ?
-                                                                " meals" :
-                                                                " meal";
-                                                        textForMessage += "\n";
-                                                    }
-                                                }
-                                                if (currentPayerSelected.meals_owed.length < 1) {
-                                                    textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
-                                                }
-                                                await bot.telegram.sendMessage(
-                                                    currentPayerSelected.id,
-                                                    textForMessage
-                                                );
-
-                                                await ctx.scene.leave();
-                                            });
-                                        });
-                                    })
-                                }
-                            });
+                // create object to be saved to the db
+                const proof = new ProofSchema({
+                    trade: {
+                        meal_ower: ctx.session.payupData.mealPayer.first_name,
+                        meal_receiver: ctx.session.payupData.mealReceiver.meal_receiver,
+                        bet: ctx.session.payupData.mealBet
+                    },
+                    proof_img: {
+                        data: b64
                     }
                 });
+                // saving the proof obj to db
+                await proof.save().catch(err => console.log(err));
+            });
+            // update the counters in the database,
+            // because the user has payed up their owed meal
+
+            ctx.session.payupData.mealPayer.meals_owed = ctx.session.payupData.mealReceiver.amount === 1 ?
+                ctx.session.payupData.mealPayer.meals_owed.filter((obj) => {
+                        if (obj !== ctx.session.payupData.mealReceiver) return obj;
+                    }
+                )
+                :
+                ctx.session.payupData.mealPayer.meals_owed.filter((obj) => {
+                        if (obj === ctx.session.payupData.mealReceiver) obj.amount -= 1;
+                        return obj;
+                    }
+                );
+            await CounterSchema.findOneAndUpdate(
+                {"id": ctx.session.payupData.mealPayer.id},
+                {"meals_owed": ctx.session.payupData.mealPayer.meals_owed}
+            );
+
+            // tell user they're done and that the img was uploaded
+            await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" +
+                ctx.session.payupData.mealPayer.first_name + " payed for " +
+                ctx.session.payupData.mealReceiver.meal_receiver + "'s meal.*\n\n" +
+                "PS: Your picture has been uploaded as evidence.🖼");
+
+            // defining the userTextingWithBot variable
+            let userTextingWithBot = ctx.update.message ?
+                ctx.update.message.from.first_name :
+                ctx.update.callback_query.from.first_name;
+
+            // remotely text the ower that the payoff of their meal has been recorded
+            let textForMessage =
+                userTextingWithBot +
+                " updated the meals owed list:\n\n" +
+                "--> Looks like you payed up your ";
+            if (ctx.session.payupData.mealPayer.meals_owed.length > 0) {
+                textForMessage += "bet!" + "\n\nRemaining meals owed:\n";
+                for (let h = 0; h < ctx.session.payupData.mealPayer.meals_owed.length; h++) {
+                    textForMessage +=
+                        ctx.session.payupData.mealReceiver.meal_receiver + " " +
+                        ctx.session.payupData.mealReceiver.amount;
+                    textForMessage +=
+                        ctx.session.payupData.mealReceiver.amount > 1 ?
+                            " meals" :
+                            " meal";
+                    textForMessage += "\n";
+                }
             }
+            if (ctx.session.payupData.mealPayer.meals_owed.length < 1) {
+                textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
+            }
+            console.log(textForMessage);
+            /*await bot.telegram.sendMessage(
+                currentPayerSelected.id,
+                textForMessage
+            );*/
+
+            await ctx.scene.leave();
         }
+    }
+
+    // adding listener for cancellation and that the cancellation is shown to the user
+    payupScene.action("cancel", async (ctx) => {
+        await ctx.scene.leave();
+    });
+    payupScene.leave(async (ctx) => {
+        await ctx.replyWithMarkdown("`(left payup process)`");
     });
 
-// connecting scene with rest of bot
+    // connecting scene with rest of bot
     stage.register(payupScene)
-    bot.use(session());
-    bot.use(stage.middleware());
     bot.command('payup', (ctx) => ctx.scene.enter('payup'));
 }
 
