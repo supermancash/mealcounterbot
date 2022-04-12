@@ -6,108 +6,116 @@ import {Markup, Scenes, session} from 'telegraf';
 
 const won = async () => {
 
-    const wonScene = new Scenes.BaseScene('won');
+    const wonScene = new Scenes.WizardScene(
+        'won',
+        (ctx) => wonEntry(ctx),
+        (ctx) => wonLvl1(ctx),
+        (ctx) => wonLvl2(ctx),
+    );
 
-    wonScene.action("cancel", (ctx) => {
-        ctx.scene.leave();
-    });
-    wonScene.leave((ctx) => ctx.replyWithMarkdown("`(left won process)`"));
+    const wonEntry = async (ctx) => {
+        ctx.session.wonData = {};
 
-    wonScene.action("back", async (ctx) => {
-        await ctx.scene.enter('lost');
-    });
+        ctx.session.wonData.counters = await CounterSchema.find();
 
-    wonScene.enter(async (ctx) => {
-        let counters, userTextingWithBot, currentWinnerSelected, currentLoserSelected;
-
-        counters = await CounterSchema.find();
-
-        ctx.update.message === undefined ?
-            userTextingWithBot = ctx.update.callback_query.from.first_name :
-            userTextingWithBot = ctx.update.message.from.first_name;
-
-        currentWinnerSelected = counters.filter(obj => obj.id === JSON.stringify(ctx.message.chat.id))[0];
+        ctx.session.wonData.betWinner =
+            ctx.session.wonData.counters.filter(obj => obj.id === JSON.stringify(ctx.message.chat.id))[0];
         await ctx.replyWithMarkdown("Ok, so you won a bet. " +
             "Who lost the bet though? 🤔", {
             ...Markup.inlineKeyboard(
                 ButtonArrayService(
-                    counters.filter(obj => obj !== currentWinnerSelected),
+                    ctx.session.wonData.counters.filter(obj => obj !== ctx.session.wonData.betWinner),
                     ["first_name"],
-                    "update1"
+                    "update",
+                    false
                 )
             )
         });
-        for (let j = 0; j < counters.length; j++) {
-            wonScene.action(counters[j].first_name, async (ctx) => {
-                currentLoserSelected = counters[j];
-                await ctx.replyWithMarkdown(
-                    "Ok, to proceed please *briefly* describe the bet that _" +
-                    currentWinnerSelected.first_name +
-                    "_ won against _" +
-                    currentLoserSelected.first_name +
-                    "_ or click cancel to terminate the update process.", {
-                        ...Markup.inlineKeyboard(
-                            [Markup.button.callback("❌ cancel ❌", "cancel")]
-                        )
-                    }
-                );
-                wonScene.hears(/.*/, async (ctx) => {
-                    // check for user in list of meals owed of the loser
-                    currentLoserSelected.meals_owed.filter(
-                        object => object.meal_receiver === currentWinnerSelected.first_name
-                    ).length > 0 ?
-                        // if the receiver of the meal already exists, add another meal owed
-                        currentLoserSelected.meals_owed.map(obj => {
-                            if (obj.meal_receiver === currentWinnerSelected.first_name) {
-                                obj.amount += 1;
-                                obj.bets.push(ctx.message.text);
-                            }
-                        })
-                        :
-                        // if the receiver doesn't exist add them to the list of meals owed
-                        currentLoserSelected.meals_owed.push(
-                            {
-                                "meal_receiver": currentWinnerSelected.first_name,
-                                "amount": 1,
-                                "bets": [ctx.message.text]
-                            }
-                        );
+        return ctx.wizard.next();
+    }
 
-                    // update the array in the database
-                    await CounterSchema.findOneAndUpdate(
-                        {"first_name": currentLoserSelected.first_name},
-                        {"meals_owed": currentLoserSelected.meals_owed}
-                    );
+    const wonLvl1 = async (ctx) => {
+        ctx.session.wonData.betLoser =
+            ctx.session.wonData.counters.filter((obj) => obj.first_name === ctx.update.callback_query.data)[0];
+        await ctx.replyWithMarkdown(
+            "Ok, to proceed please *briefly* describe the bet that _" +
+            ctx.session.wonData.betWinner.first_name +
+            "_ won against _" +
+            ctx.session.wonData.betLoser.first_name +
+            "_ or click cancel to terminate the update process.", {
+                ...Markup.inlineKeyboard(
+                    [Markup.button.callback("❌ cancel ❌", "cancel")]
+                )
+            }
+        );
+        return ctx.wizard.next();
+    }
 
-                    // reply to user
-                    await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + currentLoserSelected.first_name +
-                        " now owes " + currentWinnerSelected.first_name + " another meal.🍔*");
+    const wonLvl2 = async (ctx) => {
+// check for user in list of meals owed of the loser
+        ctx.session.wonData.betLoser.meals_owed.filter(
+            object => object.meal_receiver === ctx.session.wonData.betWinner.first_name
+        ).length > 0 ?
+            // if the receiver of the meal already exists, add another meal owed
+            ctx.session.wonData.betLoser.meals_owed.map(obj => {
+                if (obj.meal_receiver === ctx.session.wonData.betWinner.first_name) {
+                    obj.amount += 1;
+                    obj.bets.push(ctx.message.text);
+                }
+            })
+            :
+            // if the receiver doesn't exist add them to the list of meals owed
+            ctx.session.wonData.betLoser.meals_owed.push(
+                {
+                    "meal_receiver": ctx.session.wonData.betWinner.first_name,
+                    "amount": 1,
+                    "bets": [ctx.message.text]
+                }
+            );
 
-                    // text the loser of the bet that they now owe another meal to the specified other user
-                    await bot.telegram.sendMessage(
-                        currentLoserSelected.id,
-                        userTextingWithBot +
-                        " updated the meals owed list:\n\n" +
-                        "--> Looks like you lost a bet! You now owe " +
-                        currentWinnerSelected.first_name +
-                        " another meal"
-                    );
+        // update the array in the database
+        await CounterSchema.findOneAndUpdate(
+            {"first_name": ctx.session.wonData.betLoser.first_name},
+            {"meals_owed": ctx.session.wonData.betLoser.meals_owed}
+        );
 
-                    // text the winner of the bet that they now get another meal from the specified other user
-                    // TODO: check wrong name bug
-                    await bot.telegram.sendMessage(
-                        currentWinnerSelected.id,
-                        userTextingWithBot + " updated the meals owed list:\n\n" +
-                        "--> Looks like you won a bet! " +
-                        currentLoserSelected.first_name +
-                        " now owes you another meal"
-                    );
-                    await ctx.scene.leave();
-                })
-            });
-        }
+        // reply to user
+        await ctx.replyWithMarkdown("Ok, duly noted 😉\n\n*" + ctx.session.wonData.betLoser.first_name +
+            " now owes " + ctx.session.wonData.betWinner.first_name + " another meal.🍔*");
 
+        const userTextingWithBot = ctx.update.message ?
+            ctx.update.message.from.first_name :
+            ctx.update.callback_query.from.first_name;
+
+
+        // text the loser of the bet that they now owe another meal to the specified other user
+        await bot.telegram.sendMessage(
+            ctx.session.wonData.betLoser.id,
+            userTextingWithBot +
+            " updated the meals owed list:\n\n" +
+            "--> Looks like you lost a bet! You now owe " +
+            ctx.session.wonData.betWinner.first_name +
+            " another meal"
+        );
+
+        // text the winner of the bet that they now get another meal from the specified other user
+        await bot.telegram.sendMessage(
+            ctx.session.wonData.betWinner.id,
+            userTextingWithBot + " updated the meals owed list:\n\n" +
+            "--> Looks like you won a bet! " +
+            ctx.session.wonData.betLoser.first_name +
+            " now owes you another meal"
+        );
+        await ctx.scene.leave();
+    }
+
+    wonScene.action("cancel", (ctx) => {
+        ctx.scene.leave();
     });
+    wonScene.leave(
+        (ctx) =>
+            ctx.replyWithMarkdown("`(left won process)`")
+    );
 
 // connecting scene with rest of bot
     stage.register(wonScene)
