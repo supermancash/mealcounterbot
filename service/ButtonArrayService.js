@@ -29,7 +29,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
                     buttonContent[i].get(attributeList[0]),
-                    buttonContent[i].get(attributeList[0])
+                    buttonContent[i].get(attributeList[1])
                 )
             );
         }
