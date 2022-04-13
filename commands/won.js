@@ -25,7 +25,7 @@ const won = async () => {
             ...Markup.inlineKeyboard(
                 ButtonArrayService(
                     ctx.session.wonData.counters.filter(obj => obj !== ctx.session.wonData.betWinner),
-                    ["first_name"],
+                    ["first_name", "id"],
                     "update",
                     false
                 )
@@ -36,7 +36,7 @@ const won = async () => {
 
     const wonLvl1 = async (ctx) => {
         ctx.session.wonData.betLoser =
-            ctx.session.wonData.counters.filter((obj) => obj.first_name === ctx.update.callback_query.data)[0];
+            ctx.session.wonData.counters.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
         await ctx.replyWithMarkdown(
             "Ok, to proceed please *briefly* describe the bet that _" +
             ctx.session.wonData.betWinner.first_name +
@@ -96,15 +96,6 @@ const won = async () => {
             "--> Looks like you lost a bet! You now owe " +
             ctx.session.wonData.betWinner.first_name +
             " another meal"
-        );
-
-        // text the winner of the bet that they now get another meal from the specified other user
-        await bot.telegram.sendMessage(
-            ctx.session.wonData.betWinner.id,
-            userTextingWithBot + " updated the meals owed list:\n\n" +
-            "--> Looks like you won a bet! " +
-            ctx.session.wonData.betLoser.first_name +
-            " now owes you another meal"
         );
         await ctx.scene.leave();
     }

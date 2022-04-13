@@ -24,6 +24,7 @@ const payup = () => {
 
     const payupEntry = async (ctx) => {
         ctx.session.payupData = {};
+        ctx.session.__scenes.cursor = 0;
 
         // get counters from db and filter out only counters that actually owe meals
         ctx.session.payupData.owers = await CounterSchema.find({"meals_owed.0": {"$exists": true}});
@@ -40,7 +41,7 @@ const payup = () => {
         await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
             "\n_(Please click the name of the user that will be paying for the meal, " +
             "or type cancel to terminate the lost process.)_", {
-            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name"], "update", false))
+            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name", "id"], "update", false))
         });
         return ctx.wizard.next();
     }
@@ -49,9 +50,8 @@ const payup = () => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
             if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
-
             ctx.session.payupData.mealPayer =
-                ctx.session.payupData.owers.filter((obj) => obj.first_name === ctx.update.callback_query.data)[0];
+                ctx.session.payupData.owers.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
             await ctx.replyWithMarkdown(
                 "Ok, so " + ctx.session.payupData.mealPayer.first_name +
                 " will be paying. " +
@@ -60,7 +60,7 @@ const payup = () => {
                     ...Markup.inlineKeyboard(
                         ButtonArrayService(
                             ctx.session.payupData.mealPayer.meals_owed,
-                            ["meal_receiver"],
+                            ["meal_receiver", "_id"],
                             "update",
                             true
                         )
@@ -74,10 +74,10 @@ const payup = () => {
     const payupLvl2 = async (ctx) => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
-            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[1](ctx);
+            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
             ctx.session.payupData.mealReceiver =
                 ctx.session.payupData.mealPayer.meals_owed.filter(
-                    (obj) => obj.meal_receiver === ctx.update.callback_query.data)[0];
+                    (obj) => obj._id.toString() === ctx.update.callback_query.data)[0];
             await ctx.replyWithMarkdown(
                 "Please select the bet that " +
                 ctx.session.payupData.mealReceiver.meal_receiver +
@@ -99,7 +99,7 @@ const payup = () => {
     const payupLvl3 = async (ctx) => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
-            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[2](ctx);
+            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
             ctx.session.payupData.mealBet = ctx.session.payupData.mealReceiver.bets.filter((bet) => {
                 if (bet === ctx.update.callback_query.data) return bet;
             })[0];
@@ -113,7 +113,10 @@ const payup = () => {
     }
 
     const photoCallback = async (ctx) => {
-        if (!ctx.update.message.photo) await ctx.replyWithMarkdown("Please send a *picture* (jpeg, jpg, png etc.)");
+        if (!ctx.update.message || !ctx.update.message.photo) {
+            await ctx.replyWithMarkdown("Please send a *picture* (jpeg, jpg, png etc.)");
+            return ctx.wizard.steps[0](ctx);
+        }
         if (ctx.update.message.photo) {
             // get the image from the telegram api
             await ctx.telegram.getFileLink(
@@ -136,7 +139,7 @@ const payup = () => {
                     }
                 });
                 // saving the proof obj to db
-                await proof.save().catch(err => console.log(err));
+                await proof.save().catch(err => console.error(err));
             });
             // update the counters in the database,
             // because the user has payed up their owed meal
@@ -164,7 +167,7 @@ const payup = () => {
                 "PS: Your picture has been uploaded as evidence.🖼");
 
             // defining the userTextingWithBot variable
-            let userTextingWithBot = ctx.update.message ?
+            const userTextingWithBot = ctx.update.message ?
                 ctx.update.message.from.first_name :
                 ctx.update.callback_query.from.first_name;
 
@@ -189,12 +192,10 @@ const payup = () => {
             if (ctx.session.payupData.mealPayer.meals_owed.length < 1) {
                 textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
             }
-            console.log(textForMessage);
-            /*await bot.telegram.sendMessage(
-                currentPayerSelected.id,
+            await bot.telegram.sendMessage(
+                ctx.session.payupData.mealPayer.id,
                 textForMessage
-            );*/
-
+            );
             await ctx.scene.leave();
         }
     }

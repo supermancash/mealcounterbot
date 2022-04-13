@@ -5,6 +5,7 @@ import ButtonArrayService from "../service/ButtonArrayService.js";
 import {Markup, Scenes, session} from 'telegraf';
 
 const lost = async () => {
+
     const lostScene = new Scenes.WizardScene(
         'lost',
         (ctx) => lostEntry(ctx),
@@ -24,7 +25,7 @@ const lost = async () => {
             ...Markup.inlineKeyboard(
                 ButtonArrayService(
                     ctx.session.lostData.counters.filter(obj => obj !== ctx.session.lostData.betLoser),
-                    ["first_name"],
+                    ["first_name", "id"],
                     "update",
                     false
                 )
@@ -35,7 +36,7 @@ const lost = async () => {
 
     const lostLvl1 = async (ctx) => {
         ctx.session.lostData.betWinner =
-            ctx.session.lostData.counters.filter((obj) => obj.first_name === ctx.update.callback_query.data)[0];
+            ctx.session.lostData.counters.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
         await ctx.replyWithMarkdown(
             "Ok, to proceed please *briefly* describe the bet that _" +
             ctx.session.lostData.betLoser.first_name +
@@ -86,15 +87,9 @@ const lost = async () => {
             " another meal. 🍔*"
         );
 
-        // text the loser of the bet that they now owe another meal to the specified other user
-        /*await bot.telegram.sendMessage(
-            ctx.session.lostData.betLoser.id,
-            userTextingWithBot +
-            " updated the meals owed list:\n\n" +
-            "--> Looks like you lost a bet! You now owe " +
-            ctx.session.lostData.betWinner.first_name +
-            " another meal"
-        );
+        const userTextingWithBot = ctx.update.message ?
+            ctx.update.message.from.first_name :
+            ctx.update.callback_query.from.first_name;
 
         // text the winner of the bet that they now get another meal from the specified other user
         await bot.telegram.sendMessage(
@@ -104,7 +99,7 @@ const lost = async () => {
             "--> Looks like you won a bet! " +
             ctx.session.lostData.betLoser.first_name +
             " now owes you another meal"
-        );*/
+        );
 
         return ctx.scene.leave();
     }
