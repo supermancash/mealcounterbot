@@ -1,6 +1,6 @@
 import bot from "../bot.js";
 
-const help = async () => {
+const help = () => {
     bot.command('help', async (ctx) => {
         await ctx.replyWithMarkdown(
             "\n\n*Use these commands to control me:*" +

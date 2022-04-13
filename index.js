@@ -9,14 +9,14 @@ import help from "./commands/help.js";
 import proof from "./commands/proof.js";
 import won from "./commands/won.js";
 
-bot.launch().catch(err => console.log(err));
+bot.launch().catch(err => console.error(err));
 
 // db helper function
 mongoConnection();
 // different bot commands
-show().catch(err => console.log(err));
-help().catch(err => console.log(err));
-lost().catch(err => console.log(err));
-won().catch(err => console.log(err))
-payup().catch(err => console.log(err));
-proof().catch(err => console.log(err));
+show();
+help();
+lost();
+won()
+payup();
+proof();

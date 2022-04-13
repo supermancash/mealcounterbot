@@ -1,7 +1,7 @@
 import bot from "../bot.js";
 import CounterSchema from "../dao/models/Counter.js";
 
-const show = async () => {
+const show = () => {
     bot.command('show', async (ctx) => {
         // reply string that text can be added to
         let reply = "";

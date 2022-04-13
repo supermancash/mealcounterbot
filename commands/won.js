@@ -4,7 +4,7 @@ import ButtonArrayService from "../service/ButtonArrayService.js";
 
 import {Markup, Scenes, session} from 'telegraf';
 
-const won = async () => {
+const won = () => {
 
     const wonScene = new Scenes.WizardScene(
         'won',

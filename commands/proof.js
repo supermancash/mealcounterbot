@@ -3,7 +3,7 @@ import {Markup, Scenes} from "telegraf";
 import ProofSchema from "../dao/models/Proof.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
 
-const proof = async () => {
+const proof = () => {
     // TODO: authentication message with yes no buttons if proof to user that payed is adequate
 
     const proofScene = new Scenes.BaseScene('proof');
