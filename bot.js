@@ -40,10 +40,10 @@ bot.start(async (ctx) => {
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
-export default bot;
-
 // provide for scenes (telegram commands that need a dialogue)
 export const stage = new Scenes.Stage();
 
 bot.use(session());
 bot.use(stage.middleware());
+
+export default bot;
