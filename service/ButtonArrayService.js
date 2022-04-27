@@ -8,15 +8,15 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
     if (type === "proof") {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
-                (
-                    buttonContent[i].get(attributeList[0]) +
-                    " payed for " +
-                    buttonContent[i].get(attributeList[1]) + " (" +
-                    buttonContent[i].get(attributeList[2]).getUTCDate() + "." +
-                    (buttonContent[i].get(attributeList[2]).getUTCMonth() + 1) + "." +
-                    buttonContent[i].get(attributeList[2]).getUTCFullYear() +
-                    ")"
-                ),
+                    (
+                        buttonContent[i].get(attributeList[0]) +
+                        " payed for " +
+                        buttonContent[i].get(attributeList[1]) + " (" +
+                        buttonContent[i].get(attributeList[2]).getUTCDate() + "." +
+                        (buttonContent[i].get(attributeList[2]).getUTCMonth() + 1) + "." +
+                        buttonContent[i].get(attributeList[2]).getUTCFullYear() +
+                        ")"
+                    ),
                     JSON.stringify(buttonContent[i].get(attributeList[2]))
                 )
             );
@@ -25,7 +25,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
             seperatedButtons.push([buttons[i]],);
         }
     }
-    if (type==="update") {
+    if (type === "update") {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
                     buttonContent[i].get(attributeList[0]),
@@ -38,7 +38,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
         }
     }
 
-    if (type==="payup") {
+    if (type === "payup") {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
                     buttonContent[i],
@@ -50,7 +50,7 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
             seperatedButtons.push([buttons[i]],);
         }
     }
-    if(backButton) seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")],);
+    if (backButton) seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")],);
     seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")],);
 
     return seperatedButtons;
