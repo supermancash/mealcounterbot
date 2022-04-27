@@ -111,7 +111,7 @@ const won = () => {
     });
     wonScene.leave(
         (ctx) =>
-            console.log(ctx)//ctx.replyWithMarkdown("`(left won process)`")
+            ctx.replyWithMarkdown("`(left won process)`")
     );
 
 // connecting scene with rest of bot
