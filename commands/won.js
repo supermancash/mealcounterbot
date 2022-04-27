@@ -2,15 +2,18 @@ import bot, {stage} from "../bot.js";
 import CounterSchema from "../dao/models/Counter.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
 
-import {Markup, Scenes, session} from 'telegraf';
+import {Markup, Scenes} from 'telegraf';
 
 const won = () => {
 
     const wonScene = new Scenes.WizardScene(
         'won',
-        (ctx) => wonEntry(ctx),
-        (ctx) => wonLvl1(ctx),
-        (ctx) => wonLvl2(ctx),
+        (ctx) =>
+            wonEntry(ctx),
+        (ctx) =>
+            wonLvl1(ctx),
+        (ctx) =>
+            wonLvl2(ctx)
     );
 
     const wonEntry = async (ctx) => {
@@ -35,20 +38,23 @@ const won = () => {
     }
 
     const wonLvl1 = async (ctx) => {
-        ctx.session.wonData.betLoser =
-            ctx.session.wonData.counters.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
-        await ctx.replyWithMarkdown(
-            "Ok, to proceed please *briefly* describe the bet that _" +
-            ctx.session.wonData.betWinner.first_name +
-            "_ won against _" +
-            ctx.session.wonData.betLoser.first_name +
-            "_ or click cancel to terminate the update process.", {
-                ...Markup.inlineKeyboard(
-                    [Markup.button.callback("❌ cancel ❌", "cancel")]
-                )
-            }
-        );
-        return ctx.wizard.next();
+        if(!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
+        if(ctx.update.callback_query){
+            ctx.session.wonData.betLoser =
+                ctx.session.wonData.counters.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
+            await ctx.replyWithMarkdown(
+                "Ok, to proceed please *briefly* describe the bet that _" +
+                ctx.session.wonData.betWinner.first_name +
+                "_ won against _" +
+                ctx.session.wonData.betLoser.first_name +
+                "_ or click cancel to terminate the update process.", {
+                    ...Markup.inlineKeyboard(
+                        [Markup.button.callback("❌ cancel ❌", "cancel")]
+                    )
+                }
+            );
+            return ctx.wizard.next();
+        }
     }
 
     const wonLvl2 = async (ctx) => {
@@ -105,13 +111,11 @@ const won = () => {
     });
     wonScene.leave(
         (ctx) =>
-            ctx.replyWithMarkdown("`(left won process)`")
+            console.log(ctx)//ctx.replyWithMarkdown("`(left won process)`")
     );
 
 // connecting scene with rest of bot
-    stage.register(wonScene)
-    bot.use(session());
-    bot.use(stage.middleware());
+    stage.register(wonScene);
     bot.command('won', (ctx) => ctx.scene.enter('won'));
 }
 
