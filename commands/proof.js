@@ -60,8 +60,8 @@ const proof = () => {
                         ctx.session.proofData.proofSelected.trade.bet
                 }
             )
-                .then(() => {
-                    ctx.reply("To see another picture, please restart the proof process.\n(/proof)");
+                .then(async () => {
+                    await ctx.reply("To see another picture, please restart the proof process.\n(/proof)");
                 })
                 .catch(err => {
                     console.log(err);
