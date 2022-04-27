@@ -2,7 +2,7 @@ import bot, {stage} from "../bot.js";
 import CounterSchema from "../dao/models/Counter.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
 
-import {Markup, Scenes, session} from 'telegraf';
+import {Markup, Scenes} from 'telegraf';
 
 const lost = () => {
 
@@ -111,9 +111,7 @@ const lost = () => {
     lostScene.leave((ctx) => ctx.replyWithMarkdown("`(left lost process)`"));
 
 // connecting scene with rest of bot
-    stage.register(lostScene)
-    bot.use(session());
-    bot.use(stage.middleware());
+    stage.register(lostScene);
     bot.command('lost', (ctx) => ctx.scene.enter('lost'));
 }
 
