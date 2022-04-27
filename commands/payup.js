@@ -32,7 +32,7 @@ const payup = () => {
         // if nobody owes anything, tell the user and cancel the process
         if (ctx.session.payupData.owers.length === 0) {
             await ctx.reply("Looks like no meals are owed, no one has to pay up if nothing is owed🙈");
-            await ctx.scene.leave();
+            return await ctx.scene.leave();
         }
 
         // owers.length > 0
@@ -41,7 +41,11 @@ const payup = () => {
         await ctx.replyWithMarkdown("The current list of users that owe meals are shown below📝\n" +
             "\n_(Please click the name of the user that will be paying for the meal, " +
             "or type cancel to terminate the lost process.)_", {
-            ...Markup.inlineKeyboard(ButtonArrayService(ctx.session.payupData.owers, ["first_name", "id"], "update", false))
+            ...Markup.inlineKeyboard(ButtonArrayService(
+                ctx.session.payupData.owers,
+                ["first_name", "id"],
+                "update",
+                false))
         });
         return ctx.wizard.next();
     }
@@ -151,7 +155,12 @@ const payup = () => {
                 )
                 :
                 ctx.session.payupData.mealPayer.meals_owed.filter((obj) => {
-                        if (obj === ctx.session.payupData.mealReceiver) obj.amount -= 1;
+                        if (obj === ctx.session.payupData.mealReceiver) {
+                            obj.bets = obj.bets.filter((bet) => {
+                                if (bet !== ctx.session.payupData.mealBet) return bet
+                            });
+                            obj.amount -= 1;
+                        }
                         return obj;
                     }
                 );
@@ -204,9 +213,11 @@ const payup = () => {
     payupScene.action("cancel", async (ctx) => {
         await ctx.scene.leave();
     });
-    payupScene.leave(async (ctx) => {
-        await ctx.replyWithMarkdown("`(left payup process)`");
-    });
+    payupScene.leave(
+        async (ctx) => {
+            await ctx.replyWithMarkdown("`(left payup process)`");
+        }
+    );
 
     // connecting scene with rest of bot
     stage.register(payupScene)
