@@ -112,7 +112,6 @@ const payup = () => {
     const photoCallback = async (ctx) => {
         if (!ctx.update.message || !ctx.update.message.photo) {
             await ctx.replyWithMarkdown("Please send a *picture* (jpeg, jpg, png etc.)");
-            return ctx.wizard.steps[0](ctx);
         }
         if (ctx.update.message.photo) {
             // get the image from the telegram api
