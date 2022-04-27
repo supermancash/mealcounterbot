@@ -101,12 +101,12 @@ const lost = () => {
             " now owes you another meal"
         );
 
-        return ctx.scene.leave();
+        return await ctx.scene.leave();
     }
 
     // adding listener for cancellation and that the cancellation is shown to the user
-    lostScene.action("cancel", (ctx) => {
-        ctx.scene.leave();
+    lostScene.action("cancel", async (ctx) => {
+        return await ctx.scene.leave();
     });
     lostScene.leave((ctx) => ctx.replyWithMarkdown("`(left lost process)`"));
 

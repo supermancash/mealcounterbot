@@ -9,7 +9,7 @@ const proof = () => {
     const proofScene = new Scenes.BaseScene('proof');
 
     proofScene.action("cancel", async (ctx) => {
-        await ctx.scene.leave();
+        return await ctx.scene.leave();
     });
     proofScene.leave((ctx) => ctx.replyWithMarkdown("`(left proof process)`"));
 
@@ -17,7 +17,7 @@ const proof = () => {
         const proofList = await ProofSchema.find();
         if (proofList.length < 1) {
             await ctx.reply("Sorry, looks like no meals have been recorded🙁");
-            await ctx.scene.leave();
+            return await ctx.scene.leave();
         }
         if (proofList.length > 0) {
             proofList.reverse();
@@ -46,7 +46,7 @@ const proof = () => {
                             ctx.reply("I encountered an error fetching the specified proof. " +
                                 "Please try again at a later time. (/proof)");
                         });
-                    await ctx.scene.leave();
+                    return await ctx.scene.leave();
                 })
             }
         }

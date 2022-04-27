@@ -97,11 +97,11 @@ const won = () => {
             ctx.session.wonData.betWinner.first_name +
             " another meal"
         );
-        await ctx.scene.leave();
+        return await ctx.scene.leave();
     }
 
-    wonScene.action("cancel", (ctx) => {
-        ctx.scene.leave();
+    wonScene.action("cancel", async (ctx) => {
+        return await ctx.scene.leave();
     });
     wonScene.leave(
         (ctx) =>
