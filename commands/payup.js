@@ -51,7 +51,6 @@ const payup = () => {
         console.log("Shouldnt be reachable")
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
-            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
             ctx.session.payupData.mealPayer =
                 ctx.session.payupData.owers.filter((obj) => obj.id === ctx.update.callback_query.data)[0];
             await ctx.replyWithMarkdown(
@@ -75,7 +74,6 @@ const payup = () => {
     const payupLvl2 = async (ctx) => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
-            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
             ctx.session.payupData.mealReceiver =
                 ctx.session.payupData.mealPayer.meals_owed.filter(
                     (obj) => obj._id.toString() === ctx.update.callback_query.data)[0];
@@ -99,7 +97,6 @@ const payup = () => {
     const payupLvl3 = async (ctx) => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
-            if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
             ctx.session.payupData.mealBet = ctx.session.payupData.mealReceiver.bets.filter((bet) => {
                 if (bet === ctx.update.callback_query.data) return bet;
             })[0];
