@@ -1,11 +1,10 @@
 import bot, {stage} from "../bot.js";
-
-import {Markup, Scenes} from "telegraf";
-import fetch from "node-fetch";
-
 import CounterSchema from "../dao/models/Counter.js";
 import ProofSchema from "../dao/models/Proof.js";
 import ButtonArrayService from "../service/ButtonArrayService.js";
+
+import {Markup, Scenes} from "telegraf";
+import fetch from "node-fetch";
 
 const payup = () => {
     const payupScene = new Scenes.WizardScene(
@@ -24,7 +23,6 @@ const payup = () => {
 
     const payupEntry = async (ctx) => {
         ctx.session.payupData = {};
-        ctx.session.__scenes.cursor = 0;
 
         // get counters from db and filter out only counters that actually owe meals
         ctx.session.payupData.owers = await CounterSchema.find({"meals_owed.0": {"$exists": true}});
@@ -32,7 +30,7 @@ const payup = () => {
         // if nobody owes anything, tell the user and cancel the process
         if (ctx.session.payupData.owers.length === 0) {
             await ctx.reply("Looks like no meals are owed, no one has to pay up if nothing is owed🙈");
-            return await ctx.scene.leave();
+            return ctx.scene.leave();
         }
 
         // owers.length > 0
@@ -51,6 +49,7 @@ const payup = () => {
     }
 
     const payupLvl1 = async (ctx) => {
+        console.log("Shouldnt be reachable")
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
             if (ctx.update.callback_query.data === 'back') return ctx.wizard.steps[0](ctx);
@@ -214,8 +213,9 @@ const payup = () => {
         return await ctx.scene.leave();
     });
     payupScene.leave(
-        async (ctx) => {
-            await ctx.replyWithMarkdown("`(left payup process)`");
+        (ctx) => {
+            ctx.scene.options.defaultSession = {};
+            ctx.replyWithMarkdown("`(left payup process)`")
         }
     );
 
