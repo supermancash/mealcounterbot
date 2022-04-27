@@ -205,13 +205,13 @@ const payup = () => {
                 ctx.session.payupData.mealPayer.id,
                 textForMessage
             );
-            await ctx.scene.leave();
+            return await ctx.scene.leave();
         }
     }
 
     // adding listener for cancellation and that the cancellation is shown to the user
     payupScene.action("cancel", async (ctx) => {
-        await ctx.scene.leave();
+        return await ctx.scene.leave();
     });
     payupScene.leave(
         async (ctx) => {
