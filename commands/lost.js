@@ -26,8 +26,7 @@ const lost = () => {
                 ButtonArrayService(
                     ctx.session.lostData.counters.filter(obj => obj !== ctx.session.lostData.betLoser),
                     ["first_name", "id"],
-                    "update",
-                    false
+                    "update"
                 )
             )
         });

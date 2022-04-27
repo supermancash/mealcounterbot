@@ -42,8 +42,7 @@ const payup = () => {
             ...Markup.inlineKeyboard(ButtonArrayService(
                 ctx.session.payupData.owers,
                 ["first_name", "id"],
-                "update",
-                false))
+                "update"))
         });
         return ctx.wizard.next();
     }
@@ -64,8 +63,7 @@ const payup = () => {
                         ButtonArrayService(
                             ctx.session.payupData.mealPayer.meals_owed,
                             ["meal_receiver", "_id"],
-                            "update",
-                            true
+                            "update"
                         )
                     )
                 }
@@ -89,8 +87,7 @@ const payup = () => {
                         ButtonArrayService(
                             ctx.session.payupData.mealReceiver.bets,
                             [""],
-                            "payup",
-                            true
+                            "payup"
                         )
                     )
                 }

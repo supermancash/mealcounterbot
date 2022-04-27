@@ -1,7 +1,7 @@
 import {Markup} from "telegraf";
 
 
-const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
+const buttonArrayMaker = (buttonContent, attributeList, type) => {
     let buttons = [];
     let seperatedButtons = [];
 
@@ -50,7 +50,6 @@ const buttonArrayMaker = (buttonContent, attributeList, type, backButton) => {
             seperatedButtons.push([buttons[i]],);
         }
     }
-    if (backButton) seperatedButtons.push([Markup.button.callback("🔙 back 🔙", "back")],);
     seperatedButtons.push([Markup.button.callback("❌ cancel ❌", "cancel")],);
 
     return seperatedButtons;
