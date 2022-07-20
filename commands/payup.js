@@ -48,7 +48,6 @@ const payup = () => {
     }
 
     const payupLvl1 = async (ctx) => {
-        console.log("Shouldnt be reachable")
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
             ctx.session.payupData.mealPayer =

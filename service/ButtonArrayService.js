@@ -41,8 +41,8 @@ const buttonArrayMaker = (buttonContent, attributeList, type) => {
     if (type === "payup") {
         for (let i = 0; i < buttonContent.length; i++) {
             buttons.push(Markup.button.callback(
-                    buttonContent[i],
-                    buttonContent[i]
+                    buttonContent[i].substring(0, 50) + "...",
+                    buttonContent[i].substring(0, 50) + "..."
                 )
             );
         }
