@@ -133,8 +133,15 @@ const payup = () => {
                         data: b64
                     }
                 });
+
                 // saving the proof obj to db
-                await proof.save().catch(err => console.error(err));
+                try {
+                    await proof.save();
+                } catch (err) {
+                    console.error(err);
+                    ctx.reply("Sorry, I encountered an error saving your proof. Please try again at a later time.");
+                    return await ctx.scene.leave();
+                }
             });
             // update the counters in the database,
             // because the user has payed up their owed meal
@@ -192,6 +199,10 @@ const payup = () => {
             if (ctx.session.payupData.mealPayer.meals_owed.length < 1) {
                 textForMessage += "last bet!" + "\nNow you don't owe nobody nothin'"
             }
+            await bot.telegram.sendPhoto(
+                ctx.session.payupData.mealPayer.id,
+                ctx.update.message.photo
+            );
             await bot.telegram.sendMessage(
                 ctx.session.payupData.mealPayer.id,
                 textForMessage
