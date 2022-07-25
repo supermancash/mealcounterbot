@@ -97,7 +97,7 @@ const payup = () => {
         if (!ctx.update.callback_query) await ctx.replyWithMarkdown("Please click one of the *buttons* :)");
         if (ctx.update.callback_query) {
             ctx.session.payupData.mealBet = ctx.session.payupData.mealReceiver.bets.filter((bet) => {
-                if (bet === ctx.update.callback_query.data) return bet;
+                if ((bet.substring(0,50) + "...")  === ctx.update.callback_query.data) return bet;
             })[0];
             await ctx.replyWithMarkdown(
                 "Ok, almost done :)\n" +
@@ -113,6 +113,7 @@ const payup = () => {
             await ctx.replyWithMarkdown("Please send a *picture* (jpeg, jpg, png etc.)");
         }
         if (ctx.update.message.photo) {
+            let proof;
             // get the image from the telegram api
             await ctx.telegram.getFileLink(
                 ctx.update.message.photo[ctx.update.message.photo.length - 1].file_id
@@ -123,7 +124,7 @@ const payup = () => {
                 const b64 = data.toString('base64');
 
                 // create object to be saved to the db
-                const proof = new ProofSchema({
+                proof = new ProofSchema({
                     trade: {
                         meal_ower: ctx.session.payupData.mealPayer.first_name,
                         meal_receiver: ctx.session.payupData.mealReceiver.meal_receiver,
@@ -133,16 +134,17 @@ const payup = () => {
                         data: b64
                     }
                 });
-
-                // saving the proof obj to db
-                try {
-                    await proof.save();
-                } catch (err) {
-                    console.error(err);
-                    ctx.reply("Sorry, I encountered an error saving your proof. Please try again at a later time.");
-                    return await ctx.scene.leave();
-                }
             });
+            // saving the proof obj to db
+            try {
+                await proof.save();
+            } catch (err) {
+                console.error(err);
+                ctx.reply("Sorry, I encountered an error saving your proof. Please try again at a later time.");
+                return await ctx.scene.leave();
+            }
+
+
             // update the counters in the database,
             // because the user has payed up their owed meal
 
