@@ -1,4 +1,3 @@
-import 'dotenv/config';
 
 import bot from "./bot.js";
 import show from "./commands/show.js";
